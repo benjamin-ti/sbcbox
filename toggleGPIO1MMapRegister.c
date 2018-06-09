@@ -71,9 +71,14 @@ int main(void)
 	INP_GPIO(18); // must use INP_GPIO before we can use OUT_GPIO
 	OUT_GPIO(18);
 
+	printf("%x\n", (unsigned int)~(7<<(((18)%10)*3)) );
+	printf("%x\n", (unsigned int)(1<<(((18)%10)*3)) );
+
 	while(1) {
 		GPIO_SET = 1<<18;
+		usleep(500);
 		GPIO_CLR = 1<<18;
+		usleep(500);
 	}
 	
 	return 0;

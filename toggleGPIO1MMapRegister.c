@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <sched.h>
 
 #define BCM2708_PERI_BASE        0x3F000000
 #define GPIO_BASE                (BCM2708_PERI_BASE + 0x200000) /* GPIO controller */
@@ -61,6 +62,9 @@ void setup_io()
 
 int main(void)
 {
+	const struct sched_param priority = {1};
+	sched_setscheduler(0, SCHED_FIFO, &priority);
+	
 	setup_io();
 	
 	// Set GPIO pin 4 to output

@@ -6,7 +6,6 @@
 #include <stdint.h> //for uint32_t
 #include <string.h> //for memset
 #include <errno.h> //for errno
-#include <asm-generic/dma-mapping.h>
 
 #define PAGE_SIZE 4096 //mmap maps pages of memory, so we must give it multiples of this size
 
@@ -214,11 +213,11 @@ void* makeUncachedMemView(void* virtaddr, size_t bytes, int memfd, int pagemapfd
     0); //no offset into file (file doesn't exist).
     //now, free the virtual memory and immediately remap it to the physical 
     //addresses used in virtaddr
-    munmap(mem, bytes); //Might not be necessary; MAP_FIXED indicates it can map an already-used page    
+    munmap(mem, bytes); //Might not be necessary; MAP_FIXED indicates it can map an already-used page
     for (int offset=0; offset<bytes; offset += PAGE_SIZE) {
         void *mappedPage = mmap(mem+offset, PAGE_SIZE, PROT_WRITE|PROT_READ, 
                                 MAP_SHARED|MAP_FIXED|MAP_NORESERVE|MAP_LOCKED, 
-                                memfd, virtToPhys(virtaddr+offset, pagemapfd));
+                                memfd, virtToUncachedPhys(virtaddr+offset, pagemapfd));
         if (mappedPage != mem+offset) { //We need these mappings to be contiguous over virtual memory (in order to replicate the virtaddr array), so we must ensure that the address we requested from mmap was actually used.
             printf("Failed to create an uncached view of memory at addr %p+0x%08x\n", virtaddr, offset);
             exit(1);
@@ -276,16 +275,11 @@ int main(void)
     //now map /dev/mem into memory, but only map specific peripheral sections:
     volatile uint32_t *dmaBaseMem = mapPeripheral(memfd, DMA_BASE);
 	
-	void* physTestPage;
-	void* virtTestPage = dma_alloc_coherent(NULL, PAGE_SIZE/2, &physTestPage, 0);
-	printf("virt: %p\n", virtTestPage);
-	printf("phys: %p\n", physTestPage);
-	
 	//create src and dest memory
 	void *virtSrcPageCached = makeLockedMem(PAGE_SIZE/2);
-//	void *virtSrcPage = virtSrcPageCached;
-	void *virtSrcPage = makeUncachedMemView(virtSrcPageCached, PAGE_SIZE/2, 
-                                           memfd, pagemapfd);                                           
+	void *virtSrcPage = virtSrcPageCached;
+//	void *virtSrcPage = makeUncachedMemView(virtSrcPageCached, PAGE_SIZE/2, 
+//                                           memfd, pagemapfd);                                           
 	void *physSrcPage = (void*)virtToUncachedPhys(virtSrcPageCached, pagemapfd);
 	void *virtDestPageCached = makeLockedMem(PAGE_SIZE/2);
 	void *virtDestPage = virtDestPageCached;
@@ -332,7 +326,7 @@ int main(void)
 
     printf("destination reads: '%s'\n", (char*)virtDestPage);
 	
-	freeUncachedMemView(virtSrcPage, PAGE_SIZE/2);
+//	freeUncachedMemView(virtSrcPage, PAGE_SIZE/2);
     freeLockedMem(virtSrcPageCached, PAGE_SIZE/2);
 //	freeUncachedMemView(virtDestPage, PAGE_SIZE/2);
     freeLockedMem(virtDestPageCached, PAGE_SIZE/2);

@@ -1,5 +1,7 @@
 #include <linux/module.h> // Needed by all modules
 #include <linux/kernel.h> // Needed for KERN_INFO
+#include <linux/slab.h>
+#include <linux/dma-mapping.h>
 
 // Load kernel module: insmod
 // Remove kernel module: rmmod
@@ -20,14 +22,22 @@ To remove a module, use the -r flag like this.
 modprobe -r speedstep-lib
 */
 
+#define HELLO_SIZE 40
+static char* lk_pcHello;
+static dma_addr_t lk_handle;
+
 int init_module(void)
 {
-	printk(KERN_ALERT "Hello world 1.\n");
+	// lk_pcHello = kmalloc(HELLO_SIZE, GFP_KERNEL | __GFP_DMA);
+	lk_pcHello = dma_alloc_coherent(NULL, HELLO_SIZE, &lk_handle, GFP_KERNEL);
+	snprintf((char*)lk_pcHello, HELLO_SIZE, "Hello World %x; %x!\n", lk_pcHello, lk_handle);
 
 	return 0;
 }
 
 void cleanup_module(void)
 {
-	printk(KERN_ALERT "Goodbye world 1.\n");
+	printk(lk_pcHello);
+	// kfree(lk_pcHello);
+	dma_free_coherent(NULL, HELLO_SIZE, lk_pcHello, lk_handle);
 }

@@ -352,6 +352,7 @@ int main(void)
 	void *gpio_set0_phys = (unsigned int*)(GPIO_BASE_BUS+0x001C);
 	void *gpio_clr0_phys = (unsigned int*)(GPIO_BASE_BUS+0x0028);
 	
+	printf("%x\n", (unsigned int)bcm2835_peripherals_base);
 	printf("%x\n", (unsigned int)bcm2835_peripherals_base +
                                  BCM2835_GPIO_BASE+0x001C);
 	printf("%x\n", (unsigned int)gpio_set0_phys);

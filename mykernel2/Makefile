@@ -1,4 +1,4 @@
-obj-m += mykernel1.o
+obj-m += mykernel2.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules

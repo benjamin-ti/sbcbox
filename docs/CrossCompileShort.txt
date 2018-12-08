@@ -1,0 +1,37 @@
+    # Cross-Compiler in Ubuntu installieren
+    #
+    # sudo apt install gcc-arm-linux-gnueabi
+    sudo apt install gcc-arm-linux-gnueabihf
+     
+    # Kernelquellcode fuer den Raspberry Pi downloaden
+    #
+    mkdir -p raspikernel/
+    cd raspikernel
+    git clone https://github.com/raspberrypi/tools.git
+    git clone --depth 1 https://github.com/raspberrypi/linux.git
+    mkdir linux-4.14.y
+    cd linux-4.14.y
+     
+    # im Git-Archiv vorhandene Versionen anzeigen
+    # und eine aktuelle Version auschecken
+     
+    # git branch -a
+    # git checkout rpi-4.14.y
+    git init
+    git fetch git://github.com/raspberrypi/linux.git rpi-4.14.y:refs/remotes/origin/rpi-4.14.y
+    git checkout refs/remotes/origin/rpi-4.14.y
+    
+    # Config (auf Raspi)
+    sudo modprobe configs # Das legt /proc/config.gz an!
+    sudo zcat /proc/config.gz > raspi.config
+     
+    # Cross-Generierung des Kernels
+    #
+    export ARCH=arm
+    # export CROSS_COMPILE=arm-linux-gnueabihf-
+    export CROSS_COMPILE=~/raspikernel/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+    make bcmrpi_defconfig
+    # make olddefconfig
+    make -j 4 Image dtbs modules
+    
+    /boot/config.txt -> kernel=Image

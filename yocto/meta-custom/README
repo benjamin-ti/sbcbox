@@ -1,0 +1,39 @@
+This README file contains information on the contents of the meta-custom layer.
+
+Please see the corresponding sections below for details.
+
+Dependencies
+============
+
+Table of Contents
+=================
+
+  I. Adding the meta-custom layer and build
+ II. Install
+
+
+I. Adding the meta-custom layer and build
+=========================================
+
+I.e. direcotry structure:
+* mkdir -p piyocto/sources && cd piyocto/sources
+* svn this into piyocto/sources/meta-custom
+* 'git clone -b zeus git://git.yoctoproject.org/poky.git'
+* 'git clone -b zeus git://git.yoctoproject.org/meta-raspberrypi.git'
+* 'cd poky'
+* 'source ./oe-init-build-env ../../build'
+* 'bitbake-layers add-layer ../sources/meta-raspberrypi'
+* 'bitbake-layers add-layer ../sources/meta-custom'
+* 'cp ../sources/meta-custom/local.conf conf/'
+* 'bitbake core-image-base'
+
+II. Install
+===========
+
+$ cd build/tmp/deploy/images/raspberrypi2/
+# dd if=core-image-base-raspberrypi2.rpi-sdimg of=/dev/sdX bs=4M
+# mkfs.ext4 /dev/sdX2
+$ mkdir tmp
+# mount /dev/sdX2 tmp/
+# tar -xf core-image-base-raspberrypi2.tar.bz2 tmp/
+

@@ -1,0 +1,19 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+    compatible = "brcm,bcm2835";
+    
+    fragment@0 {
+        target = <&gpio>;
+        __overlay__ {
+            pinctrl-names = "default";
+            pinctrl-0 = <&gpio18_outp>;
+
+            gpio18_outp: gpio18_outp {
+                brcm,pins = <18>; // gpio number
+                brcm,function = <1>; // 0 = input, 1 = output
+            };
+        };
+    };
+};

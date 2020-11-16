@@ -1,0 +1,9 @@
+echo Welcome to Bens boot script
+
+# load mmc 0:1 ${loadaddr} zImage
+# load mmc 0:1 ${fdtaddr} cv_octavo_emlix.dtb
+# bootz ${loadaddr} - ${fdtaddr}
+
+load mmc 0:1 $loadaddr uImage-.dtb.bin
+# setenv bootargs console=${console} ${optargs} coherent_pool=16M root=/dev/mmcblk0p2
+bootm $loadaddr

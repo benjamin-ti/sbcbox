@@ -4,16 +4,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-// AM335x-Manual Memory Map GPIO1-Register
-#define AM335X_GPIO1_BASE        0x4804C000
+// GPIO Name = Z = 32*X + Y where X is the gpio register and Y is the position within that register
+// i.e. GPIO2_24 is 32*2+24, making it GPIO_88
+// AM335x-Manual Memory Map GPIO-Register
+// GPIO0: 0x44E0 7000
+// GPIO1: 0x4804 C000
+// GPIO2: 0x481A C000
+// GPIO3: 0x481A E000
+#define AM335X_GPIO_BASE 0x44E07000
 
 int main(void)
 {
     volatile char* gpio_map;
     volatile unsigned* gprev;
-    volatile unsigned* gpfsel1;
-    volatile unsigned* gpset0;
-    volatile unsigned* gpclr0;
+    volatile unsigned* gpoe;
+    volatile unsigned* gpset;
+    volatile unsigned* gpclr;
 
     int memfd = open("/dev/mem", O_RDWR | O_SYNC);
     if (memfd < 0) {
@@ -27,7 +33,7 @@ int main(void)
         PROT_READ|PROT_WRITE,// Enable reading & writting to mapped memory
         MAP_SHARED,       // Shared with other processes
         memfd,            // File to map
-        (off_t)AM335X_GPIO1_BASE // Adress to GPIO peripheral
+        (off_t)AM335X_GPIO_BASE // Adress to GPIO peripheral
     );
 
     if (gpio_map == MAP_FAILED) {
@@ -36,22 +42,18 @@ int main(void)
     }
 
     gprev = (volatile unsigned*)(gpio_map+0x0000);
-    printf("%x\n", *gprev);
+    printf("GPIO_REVISION: %x\n", *gprev);
 
-/*
-    gpfsel1 = (volatile unsigned*)(gpio_map+0x0004);
-    gpset0  = (volatile unsigned*)(gpio_map+0x001C);
-    gpclr0  = (volatile unsigned*)(gpio_map+0x0028);
+    gpoe  = (volatile unsigned*)(gpio_map+0x134);
+    gpclr = (volatile unsigned*)(gpio_map+0x190);
+    gpset = (volatile unsigned*)(gpio_map+0x194);
 
-    *gpfsel1 &= ~0x07000000;
-    *gpfsel1 |= 0x01000000;
+    *gpoe &= ~0x00000080; // set GPIO_7 as output
+    printf("GPIO_OE: %x\n", *gpoe);
 
-	*gpset0 = 0x00040000;
-	usleep(500*1000);
-	*gpclr0 = 0x00040000;
-	usleep(500*1000);
-*/
-
+    *gpset = 0x00000080;
+    usleep(500*1000);
+    *gpclr = 0x00000080;
 
     return 0;
 }

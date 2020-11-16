@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->
+<html class="no-js" lang="en"><!--<![endif]--><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8"><style class="darkreader darkreader--fallback" media="screen"></style><style class="darkreader darkreader--text" media="screen"></style><style class="darkreader darkreader--invert" media="screen">.jfk-bubble.gtx-bubble, .captcheck_answer_label > input + img, embed[type="application/pdf"] {
+    filter: invert(100%) hue-rotate(180deg) contrast(90%) !important;
+}</style><style class="darkreader darkreader--inline" media="screen">[data-darkreader-inline-bgcolor] {
+  background-color: var(--darkreader-inline-bgcolor) !important;
+}
+[data-darkreader-inline-bgimage] {
+  background-image: var(--darkreader-inline-bgimage) !important;
+}
+[data-darkreader-inline-border] {
+  border-color: var(--darkreader-inline-border) !important;
+}
+[data-darkreader-inline-border-bottom] {
+  border-bottom-color: var(--darkreader-inline-border-bottom) !important;
+}
+[data-darkreader-inline-border-left] {
+  border-left-color: var(--darkreader-inline-border-left) !important;
+}
+[data-darkreader-inline-border-right] {
+  border-right-color: var(--darkreader-inline-border-right) !important;
+}
+[data-darkreader-inline-border-top] {
+  border-top-color: var(--darkreader-inline-border-top) !important;
+}
+[data-darkreader-inline-boxshadow] {
+  box-shadow: var(--darkreader-inline-boxshadow) !important;
+}
+[data-darkreader-inline-color] {
+  color: var(--darkreader-inline-color) !important;
+}
+[data-darkreader-inline-fill] {
+  fill: var(--darkreader-inline-fill) !important;
+}
+[data-darkreader-inline-stroke] {
+  stroke: var(--darkreader-inline-stroke) !important;
+}
+[data-darkreader-inline-outline] {
+  outline-color: var(--darkreader-inline-outline) !important;
+}</style><style class="darkreader darkreader--variables" media="screen">:root {
+   --darkreader-neutral-background: #181a1b;
+   --darkreader-neutral-text: #e8e6e3;
+   --darkreader-selection-background: #004daa;
+   --darkreader-selection-text: #e8e6e3;
+}</style><style class="darkreader darkreader--user-agent" media="screen">html {
+    background-color: #181a1b !important;
+}
+html, body, input, textarea, select, button {
+    background-color: #181a1b;
+}
+html, body, input, textarea, select, button {
+    border-color: #736b5e;
+    color: #e8e6e3;
+}
+a {
+    color: #3391ff;
+}
+table {
+    border-color: #545b5e;
+}
+::placeholder {
+    color: #b2aba1;
+}
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+    background-color: #555b00 !important;
+    color: #e8e6e3 !important;
+}
+::-webkit-scrollbar {
+    background-color: #202324;
+    color: #aba499;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #454a4d;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: #575e62;
+}
+::-webkit-scrollbar-thumb:active {
+    background-color: #484e51;
+}
+::-webkit-scrollbar-corner {
+    background-color: #181a1b;
+}
+* {
+    scrollbar-color: #202324 #454a4d;
+}
+::selection {
+    background-color: #004daa !important;
+    color: #e8e6e3 !important;
+}
+::-moz-selection {
+    background-color: #004daa !important;
+    color: #e8e6e3 !important;
+}</style>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Setting Up the BeagleBone Black's GPIO Pins</title>
+	<meta name="author" content="William Emfinger, Dexter Watkins">
+	<link href="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/style.css" rel="stylesheet" media="all"><style class="darkreader darkreader--sync" media="screen"></style>
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Setting Up the BeagleBone Black's GPIO Pins" type="application/atom+xml">
+	<script type="text/javascript" async="" src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/ga.js"></script><script src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/widgets.js" id="tweetjs"></script><script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+<meta name="darkreader" content="deae0db052ba0e8d6752f69c6557d132"><style class="darkreader darkreader--override" media="screen">.vimvixen-hint {
+    background-color: #7b5300 !important;
+    border-color: #d8b013 !important;
+    color: #f3e8c8 !important;
+}
+::placeholder {
+    opacity: 0.5 !important;
+}</style><script type="text/javascript" async="" src="http://jekyllbootstrap.disqus.com/embed.js"></script><script charset="utf-8" src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/button.js"></script></head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<nav class="nav-global">
+					<ul>
+						<li class="logo"><a href="https://vadl.github.io/">Vanderbilt Aerospace Design Lab</a></li>
+						<li class="archive"><a href="https://vadl.github.io/archive.html">archive</a></li>
+						<li class="page"><a href="https://vadl.github.io/pages.html">pages</a></li>
+						<li class="category"><a href="https://vadl.github.io/categories.html">categories</a></li>
+						<li class="tag"><a href="https://vadl.github.io/tags.html">tags</a></li>
+						<li class="forkme"><div><iframe src="http://markdotto.github.com/github-buttons/github-btn.html?user=plusjade&amp;repo=jekyll-bootstrap&amp;type=fork&amp;count=true" allowtransparency="true" scrolling="0" width="95px" height="20px" frameborder="0"></iframe></div></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h2 entry-title">Setting Up the BeagleBone Black's GPIO Pins</h1>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">
+					<p>This post will detail how to set up the BBB’s GPIO pins. General
+Purpose Input/Output (GPIO) pins are special in that they can be
+configured at runtime to perform in a variety of ways, ranging from
+simple i/o to serial interfaces to specialized encoder readings. While
+the BBB supports up the 69 gpio pins, in reality the majority of the
+pins are being used by onboard system processes such as the board’s
+HDMI and LCD abilities. This post will detail the steps necessary to
+take advantage of these otherwise inaccessible pins, as well as
+configure a gpio pin to suit the user’s needs.</p>
+
+<h2 id="linux-kernel-version">Linux Kernel Version</h2>
+
+<p>This guide assumes the user’s BBB is running <em>Linux Kernel 4.1.15</em>. If
+an earlier version is used, such as <em>3.8.X</em>, then abundant information
+on configuring the BBB can be found through google and the procedures
+listed in this guide will probably not work.</p>
+
+<h2 id="bbb-headers-and-pinout">BBB Headers and Pinout</h2>
+
+<p>The BBB has two 23 pin columns on each side of the board, for
+a total of 92 pins available to the user. The right header is
+designated as P8 while the left is designated P9. Pay careful
+attention to the orientation of the BBB in reference to the pinout
+numbers, else you risk mis-wiring the board and potentially causing
+irreversible damage. Physical pins are numbered in the following
+manner, <code class="highlighter-rouge">PX_Y</code>, where <code class="highlighter-rouge">X</code> is the header where the pin is located (8 or
+9) and <code class="highlighter-rouge">Y</code> is the location of the pin with that header. Pins <em>P8_1</em>
+and <em>P9_1</em> are located at the top right of each header. Notice that
+the left column of each header are all the odd pins while the right
+column of each header are all the even pins.</p>
+
+<p><img src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/bbb_headers.png" alt="BBB Headers" class="center-image"></p>
+
+<p>As seen in the graphic, the first and last rows of pins are dedicated
+to nets such as <em>DGND</em>, <em>VDD_3V3</em> (3.3V Output), <em>VDD_5v</em> (5V
+Output), and system power/reset. The rest of the pins are configurable
+in software, as will be detailed later in this post. The labels on the
+graphic show the <em>default mode</em> of the pins. Not all pins are able to
+be used as GPIO’s immediately. Systems such as the LCD and HDMI
+drivers take priority to these pins. A more detailed view of the BBB’s
+header’s and pin usage can be seen in the graphics below</p>
+
+<p><img src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/P8Header.png" alt="P8 Header" class="center-image">
+<img src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/P9Header.png" alt="P9 Header" class="center-image"></p>
+
+<h3 id="gpio-numbering-scheme">GPIO Numbering Scheme</h3>
+
+<p>The gpio pins of the bbb are grouped into 3 groups of 32: <em>GPIO0</em>,
+<em>GPIO1</em>, and <em>GPIO2</em>. An individual pin can be refered to using the
+convention <code class="highlighter-rouge">GPIOX_Y</code> where <code class="highlighter-rouge">X</code> is its gpio register and <code class="highlighter-rouge">Y</code> is its
+number within that register. <em>However, all references to a particular
+pin made in software instead uses its absolute pin number!</em> A gpio’s
+<em>absolute</em> pin number is calculated in the following manner: <code class="highlighter-rouge">Z =
+32*X + Y</code> where <code class="highlighter-rouge">X</code> is again the gpio register and <code class="highlighter-rouge">Y</code> is the position
+within that register.</p>
+
+<p>i.e. GPIO2_24 is <code class="highlighter-rouge">32*2+24</code>, making it GPIO_88. <em>If this pin were to be
+referenced anywhere in software, the user would use the number 88, not
+24</em>!</p>
+
+<h3 id="overloaded-pins">Overloaded Pins</h3>
+
+<p>Additional scrutiny of the above header pin layouts shows all the
+possible uses of each individual pin. Any pin highlighted in red is a
+pin that is inaccessible for use as a gpio pin by default, see the
+notes column for it’s initial allocation. As an example, P8_28, aka
+GPIO2_24, aka GPIO_88, is by default allocated to the
+<code class="highlighter-rouge">nxp_hdmi_bonelt_pins</code> group. While it is overloaded in this capacity,
+no other use can be made of this pin. Multiple modes are available for
+each pin, and setting these modes wil be discussed in a later section.</p>
+
+<h3 id="recap-of-numbering-schemes">Recap of Numbering Schemes</h3>
+
+<p>As a recap, <em>each gpio pin on the BBB has three different numbering schemes associated with it!</em></p>
+
+<ol>
+  <li>The physical pin location, in the form of <code class="highlighter-rouge">PX_Y</code> (P8_28)</li>
+  <li>The gpio name, in the form of <code class="highlighter-rouge">GPIOX_Y</code> (GPIO2_24)</li>
+  <li>The gpio number, in the form of <code class="highlighter-rouge">32*X + Y</code> (88)</li>
+</ol>
+
+<p>Only the last scheme, the gpio number, is used in software!</p>
+
+<h2 id="configuring-accessible-gpio-pins">Configuring Accessible GPIO Pins</h2>
+
+<p>Once a GPIO pin is accessible (either by default or by configuring a
+device tree overlay as detailed below), it is very easy to intereact
+with it directly from the terminal. First, simply for ease of life,
+enter the following command to temporarily switch to root for this
+example.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>sudo su
+</code></pre>
+</div>
+
+<p>We interact with BBB pins via a set of files that are read/written
+to. To reach the directory where these files are located, enter the
+following.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">cd</span> /sys/class/gpio
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo </span>27 &gt; <span class="nb">export</span>
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">cd </span>gpio27
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo </span>out &gt; direction
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>cat value
+</code></pre>
+</div>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo </span>1 &gt; value
+</code></pre>
+</div>
+
+<h3 id="access-using-c-library">Access using C++ library</h3>
+
+<p>The C++ library can be found <a href="https://vadl.github.io/beagleboneblack/2016/07/29/github.com/rosmod/lib-bbbgpio">here.</a></p>
+
+<div class="language-c++ highlighter-rouge"><pre class="highlight"><code><span class="cp">#include "gpio.h"
+</span><span class="o">~~~</span>
+<span class="o">~~~</span>
+<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">pin</span> <span class="o">=</span> <span class="mi">27</span><span class="p">;</span>
+<span class="n">gpio_export</span><span class="p">(</span><span class="n">pin</span><span class="p">);</span>
+<span class="n">gpio_set_dir</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span><span class="n">OUT</span><span class="p">);</span>
+<span class="n">gpio_set_value</span><span class="p">(</span><span class="n">pin</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<h2 id="accessing-inaccessible-pins">Accessing Inaccessible Pins</h2>
+
+<p>Before going into the details of configuring inaccessible pins, it is
+necessary to briefly go over the inner workings of the BBB and touch
+on concepts such as pin modes, the device tree and its overlays, and
+how to interact with it.</p>
+
+<h3 id="pin-modes">Pin Modes</h3>
+
+<p>As seen in the above graphics detailing the P8 and P9 headers, each
+pin can be configured to one out of 8 possible modes. For our
+purposes, it is important to note that mode7 is always the GPIO
+configuration for every pin.</p>
+
+<p>The pin mode for any given pin is stored in 7 bits using the following convention.</p>
+
+<p><img src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/GPIO_Bits.png" alt="GPIO_Bits" class="center-image"></p>
+
+<p>Notice the example configurations under the table. The bits values are
+listed in Hexadecimal form, so that the two digits following “0x”
+contain the values of all 7 bits. The last digit of the pair contains
+the values of bits 0,1,2, and 3. As such, in order to be in mode7
+(GPIO) bits 0,1, and 2 are all 1, giving a possible value of either 7
+or F for the last hex digit. (Binary of either 0111 or 1111). The
+first digit of the pair contains the values of bits 4,5, and 6 (with
+the most significant bit being a constant 0). If the pin is configured
+as an output, then the possible values of this bit are 0 and 1 (0000
+and 0001) depending on if pull down or pull up is selected. If the pin
+is an input, the possible values are 2 and 3 (0010 and 0011), again
+depending on the pullup/down setting</p>
+
+<p>The pin mode of each pin is configured in what is called a device tree
+overlay, which will be discussed in detail in a later section.</p>
+
+<h3 id="device-tree">Device Tree</h3>
+
+<p><a href="https://learn.adafruit.com/introduction-to-the-beaglebone-black-device-tree/overview">Here</a>
+is a good overview of what exactly the device tree is. <em>BEWARE, THIS
+LINK IS for the 3.8 KERNEL AND IS NO LONGER COMPLETELY ACCURATE!</em></p>
+
+<p>The Linux Device tree controls the configuration of pins: mux mode,
+direction, pullup/pulldown, etc. It is a generic, standardized way of
+dealing with constantly updating hardware configurations. In short, it
+describes the hardware in a system. It is the linux version of ARM
+board files.</p>
+
+<p>The device tree is compiled into a <code class="highlighter-rouge">.dtb</code> file that is then loaded
+upon the kernel’s startup. All specified pins and peripherals are
+loaded and configured for use in the system.</p>
+
+<h3 id="cape-manager-and-device-tree-overlays">Cape Manager and Device Tree Overlays</h3>
+
+<p>As mentioned in the previous section, the device tree is loaded when
+the kernel starts. It would be a very long and tedious process if, in
+order to make any changes to the device tree, one were required to
+modify the device tree, recompile it, and restart the device. Luckily,
+the BBB’s cape manager comes to the rescue. The cape manager allows
+the modification of parts of the device tree <em>at runtime</em> by loading
+<em>overlays</em> that enable peripherals or mux pins to a specific function.</p>
+
+<p>To see what device overlays are currently loaded on the device:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>cat /sys/devices/platform/bone_capemgr/slots
+</code></pre>
+</div>
+
+<p>As an example, one might see the following:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">root@node31:~# </span>cat /sys/devices/platform/bone_capemgr/slots
+0: PF----  -1 
+1: PF----  -1 
+2: PF----  -1 
+3: PF----  -1 
+4: P-O-L-   0 Override Board Name,00A0,Override Manuf,BB-ADC
+5: P-O-L-   1 Override Board Name,00A0,Override Manuf,gpio_88
+</code></pre>
+</div>
+
+<p>This shows that two overlays, <em>BB-ADC</em> and <em>gpio_88</em>, have been loaded by the cape manager.</p>
+
+<p>In order to check if an overlay has successfully changed the pins
+modes of the target pins, utilize the following commands:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pins
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">/sys/kernel/debug/pinctrl/44e10800.pinmux/pins</code> will provide the pin
+number, the pin’s physical memory address, and the current mode to
+which the pin has been muxed.</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>cat /sys/kernel/debug/pinctrl/44e10800.pinmux/pingroups | less
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">/sys/kernel/debug/pinctrl/44e10800.pinmux/pingroups</code> provides a list of all “claimed” pins, such as pins that are configured and reserved via overlays.</p>
+
+<h3 id="dtc-and-compiling-custom-overlays">DTC And Compiling Custom Overlays</h3>
+
+<p>In order to make custom overlays, it in necessary to install the device
+tree overlay compiler made and maintained by Robert Nelson. It can be
+found at
+<a href="https://github.com/beagleboard/bb.org-overlays">https://github.com/beagleboard/bb.org-overlays</a>. For
+ease of use, we have forked the current version at
+<a href="https://github.com/VADL/bb.org-overlays">https://github.com/VADL/bb.org-overlays</a>,
+so that as long as you are running the <em>4.1.15</em> kernel, compatibility
+is not an issue.</p>
+
+<p>To install the compiler, perform the following steps.</p>
+
+<ol>
+  <li>clone the dtc repo</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>git clone https://github.com/vadl/bb.org-overlays
+<span class="nb">cd</span> ./bb.org-overlays
+</code></pre>
+</div>
+
+<ol>
+  <li>Run the dtc-overlay script</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>./dtc-overlay.sh
+</code></pre>
+</div>
+
+<p>After installation, the dtc compiler can be called on a .dts file to
+produce the corresponding .dtbo overlay file. For an example overlay
+called <em>sample_overlay.dts</em>:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>dtc -O dtb -o /lib/firmware/sample_overlay-00A0.dtbo -b 0 -@ sample_overlay.dts
+</code></pre>
+</div>
+
+<p>Be sure to put the new .dtbo file into <code class="highlighter-rouge">/lib/firmware</code> so that it is
+visible to the BBB os. <em>ALWAYS APPEND ‘-00A0’ TO THE END OF A DTBO
+FILE. THIS IS NECESSARY FOR THE FILE TO BE LOADED PROPERLY BY THE CAPE
+MANAGER!</em></p>
+
+<p>One minor yet crucial tidbit of knowledge to remember is that the overlay
+name cannot exceed 14 characters. If this limit is exceeded then it
+will not be able to be enabled by the cape manager.</p>
+
+<p>To enable the overlay, type the following</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nb">echo </span>sample_overlay &gt; /sys/devices/platform/bone_capemgr/slots
+</code></pre>
+</div>
+
+<table>
+  <tbody>
+    <tr>
+      <td>Note that the name of the cape in this command is just sample_overlay, not sample</td>
+      <td>_overlay.dtbo</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>To set the overlay to enable at boot, add the cape name in <code class="highlighter-rouge">/etc/default/capemgr</code></p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="nv">cape</span><span class="o">=[</span>comma delimited cape names]
+</code></pre>
+</div>
+
+<p>Documentation on this <a href="http://elinux.org/Beagleboard:BeagleBoneBlack_Debian#Loading_custom_capes">can be found here</a></p>
+
+<h3 id="disabling-default-overlays">Disabling Default Overlays</h3>
+
+<h3 id="enabling-and-disabling-custom-overlays">Enabling and Disabling Custom Overlays</h3>
+
+<h2 id="related-concepts">Related Concepts</h2>
+
+<h3 id="pru">PRU</h3>
+
+<p>Reading and writing the gpio pins through the file system as detailed
+above is a relatively slow process, capable of read/write frequencies
+in the low hundreds of Hz. An alternative is to utilize the BBB’s built in
+Programmable Realtime Units (PRU’s). PRU’s are independent units
+completely separate from the BBB OS, and can allow I/O at up to 20
+MSPS. While this guide does not detail how to use a PRU, don’t forget
+it exists!</p>
+
+<p><a href="https://github.com/beagleboard/am335x_pru_package">A GitHub repo supporting PRU use can be found here</a></p>
+
+<p>Ken Shirrif has a blog post on the PRU <a href="http://www.righto.com/2016/08/pru-tips-understanding-beaglebones.html">here</a></p>
+
+<h3 id="analog-io">Analog I/O</h3>
+
+<h3 id="serial-and-uart-communication">Serial and UART Communication</h3>
+
+<h2 id="links">Links</h2>
+
+<p>A writeup about BBB Overlays and the cape manager can be found <a href="http://www.thing-printer.com/cape-manager-is-back-baby/">here</a></p>
+
+<p>Ken Shirrif’s blog has a great post on the <a href="http://www.righto.com/2016/08/the-beaglebones-io-pins-inside-software.html">BBB GPIO</a></p>
+
+<p>In addition to providing many of the graphics used in this document,
+<a href="http://exploringbeaglebone.com/">Derek Molly has extensive documentation on all things BBB</a></p>
+
+
+					<div class="meta">
+						<p class="date-publish">
+							Published: 
+							<date class="date-pub" title="2016-07-29T07:27:00+00:00" datetime="2016-07-29T07:27:00+00:00" pubdate="">
+							<span class="month"><abbr>July</abbr></span>
+							<span class="day">29</span>
+							<span class="year">2016</span>
+							</date>
+						</p>
+						<ul class="list-category list-linear">
+							<li class="list-head">category: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="https://vadl.github.io/categories.html#beagleboneblack-ref">
+    		beagleboneblack <span>1</span>
+    	</a></li>
+    
+  
+
+
+						</ul>
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="https://vadl.github.io/tags.html#bbb,-ref">bbb, <span>1</span></a></li>
+     
+    	<li><a href="https://vadl.github.io/tags.html#gpio,-ref">gpio, <span>1</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><iframe id="twitter-widget-0" scrolling="no" allowtransparency="true" allowfullscreen="true" class="twitter-share-button twitter-share-button-rendered twitter-tweet-button" style="position: static; visibility: visible; width: 61px; height: 20px;" title="Twitter Tweet Button" src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/tweet_button.html" frameborder="0"></iframe></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/" class="twitter-follow-button twitter-follow-button-error" data-show-count="false" data-lang="en" data-twitter-extracted-i1605287652766221242="true"></a></div></li>
+						</ul>
+					</div>
+					<div class="comment">
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    
+    
+    var disqus_shortname = 'jekyllbootstrap'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com/" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+					</div>
+				</div><!-- misc-content -->
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev" href="https://vadl.github.io/2016/07/11/introduction-to-latex" title="View Introduction to LaTeX">« Introduction to LaTeX</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next" href="https://vadl.github.io/ksp/2016/07/31/getting-a-part-from-solidworks-to-ksp" title="View Getting a part from SolidWorks to KSP">Getting a part from SolidWorks to KSP »</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+				<div class="misc vcard">
+					<h4>about</h4>
+					<ul>
+						<li class="contact"><address><span class="author fn n">William Emfinger, Dexter Watkins</span> - <span class="fn email">emfinger@isis.vanderbilt.edu, dexter.a.watkins@vanderbilt.edu</span></address></li>
+						<li class="github"><a href="http://github.com/vadl/" rel="me">github.com/vadl</a></li>
+						<li class="twitter"><a href="http://twitter.com//" rel="me">twitter.com/</a></li>
+						<li class="rss"><a href="http://feeds.feedburner.com/">Subscribe to RSS Feed</a></li>
+					</ul>
+				</div><!-- misc -->
+				<p class="licence">
+					Theme: <a href="http://layouts-the.me/">the_minimum</a> based on <a href="http://jekyllbootstrap.com/">Jekyll-bootstrap</a>.<br>
+					Powered by <a href="https://github.com/mojombo/jekyll">Jekyll</a>.
+				</p>
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/beagleboneblack/2016/07/29/setting-up-bbb-gpio" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+  
+  
+
+
+
+
+  <script type="text/javascript">
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-123-12']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+</script>
+
+
+
+
+
+
+
+<iframe scrolling="no" allowtransparency="true" src="Setting%20Up%20the%20BeagleBone%20Black's%20GPIO%20Pins-Dateien/widget_iframe.html" title="Twitter settings iframe" style="display: none;" frameborder="0"></iframe><iframe id="rufous-sandbox" scrolling="no" allowtransparency="true" allowfullscreen="true" style="position: absolute; visibility: hidden; display: none; width: 0px; height: 0px; padding: 0px; border: medium none; --darkreader-inline-border-top:currentcolor; --darkreader-inline-border-right:currentcolor; --darkreader-inline-border-bottom:currentcolor; --darkreader-inline-border-left:currentcolor;" data-darkreader-inline-border-top="" data-darkreader-inline-border-right="" data-darkreader-inline-border-bottom="" data-darkreader-inline-border-left="" title="Twitter analytics iframe" frameborder="0"></iframe></body></html>

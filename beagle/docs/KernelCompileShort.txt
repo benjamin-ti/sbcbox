@@ -25,3 +25,6 @@ make -j 4
 export INSTALL_MOD_PATH=/tmp/modules
 make modules_install
 rsync -avz /tmp/modules/ debian@10.102.1.163:~
+
+export INSTALL_DTBS_PATH=/tmp/modules
+make dtbs_install

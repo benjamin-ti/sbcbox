@@ -1,0 +1,40 @@
+Download and untar official buildroot
+make beaglebone_defconfig
+make
+sudo dd if=output/images/sdcard.img of=/dev/sdb bs=1M
+
+oder (hat bei mir aber nicht funktioniert):
+Boot from SD card:
+    cd output-bbb/images
+    cp MLO u-boot.img zImage am335x-boneblack.dtb uEnv.txt /media/bill/boot/
+    sudo tar -C /media/bill/rootfs -xf rootfs.tar
+  uEnv:
+    bootpart=0:1
+    devtype=mmc
+    bootdir=
+    bootfile=zImage
+    bootpartition=mmcblk0p2
+    set_mmc1=if test $board_name = A33515BB; then setenv bootpartition mmcblk1p2; fi
+    set_bootargs=setenv bootargs console=ttyO0,115200n8 root=/dev/${bootpartition} rw rootfstype=ext4 rootwait
+    uenvcmd=run set_mmc1; run set_bootargs;run loadimage;run loadfdt;printenv bootargs;bootz ${loadaddr} - ${fdtaddr}
+Boot from TFTP/NFS server:
+    cd output-bbb/images
+    cp MLO u-boot.img zImage am335x-boneblack.dtb uEnv.txt /tftproot/
+    sudo tar -C /rootfs -xf rootfs.tar
+  uEnv:
+    fdtfile=am335x-boneblack.dtb
+    fdtaddr=0x88000000
+    bootfile=zImage
+    loadaddr=0x82000000
+    console=ttyO0,115200n8
+    serverip=192.168.0.104
+    ipaddr=192.168.0.105
+    rootpath=/rootfs
+    netloadfdt=tftp ${fdtaddr} ${fdtfile}
+    netloadimage=tftp ${loadaddr} ${bootfile}
+    netargs=setenv bootargs console=${console} ${optargs} root=/dev/nfs nfsroot=${serverip}:${rootpath},nolock,nfsvers=3 rw rootwait ip=${ipaddr}
+    netboot=echo Booting from network ...; setenv autoload no; run netloadimage; run netloadfdt; run netargs; bootz ${loadaddr} - ${fdtaddr}
+    uenvcmd=run netboot
+
+Tipp: Man kann glaub ich Dinge in der .config so ueberschreiben oder ergaenzen:
+make BR2_EXTERNAL=$PWD/external -C $PWD/buildroot O=$PWD/output-bbb labs_defconfig

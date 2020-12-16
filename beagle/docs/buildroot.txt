@@ -3,7 +3,7 @@ make beaglebone_defconfig
 make
 sudo dd if=output/images/sdcard.img of=/dev/sdb bs=1M
 
-oder (hat bei mir aber nicht funktioniert):
+oder (hat bei mir aber nicht funktioniert, wobei die konventionelle Methode mit gparted hat gefunzt):
 Boot from SD card:
     cd output-bbb/images
     cp MLO u-boot.img zImage am335x-boneblack.dtb uEnv.txt /media/bill/boot/

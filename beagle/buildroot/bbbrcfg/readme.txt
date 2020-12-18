@@ -16,3 +16,6 @@ BeagleBone (root, name doesn't matter))
 Go to your output directory and type:
 make BR2_DEFCONFIG=../bbbrcfg/bbb_defconfig -C ../<buildroot>/ O=$(pwd) defconfig
 make
+
+make gconfig
+make savedefconfig

@@ -1,0 +1,20 @@
+--- a/arch/arm/boot/dts/am335x-boneblack.dts	2020-12-21 17:04:41.826479853 +0100
++++ b/arch/arm/boot/dts/am335x-boneblack.dts	2020-12-21 16:11:18.352272632 +0100
+@@ -7,6 +7,7 @@
+ #include "am33xx.dtsi"
+ #include "am335x-bone-common.dtsi"
+ #include "am335x-boneblack-common.dtsi"
++#include "am335x-bone-pinmux-ttyS2.dtsi"
+ /* #include "am335x-bone-jtag.dtsi" */
+ 
+ / {
+@@ -33,3 +34,9 @@
+ 		opp-supported-hw = <0x06 0x0100>;
+ 	};
+ };
++
++/ {
++    bens {
++	    BENS_HELLO = __TIMESTAMP__;
++    };
++};

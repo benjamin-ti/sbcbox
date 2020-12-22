@@ -1,0 +1,1 @@
+source "$BR2_EXTERNAL_BENSBBB_PATH/package/hello/Config.in"

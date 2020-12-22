@@ -14,7 +14,10 @@ BeagleBone (root, name doesn't matter))
  +--- ...
 
 Go to your output directory and type:
-make BR2_DEFCONFIG=../bbbrcfg/bbb_defconfig -C ../<buildroot>/ O=$(pwd) defconfig
+make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_defconfig -C ../<buildroot>/ O=$(pwd) defconfig
+or
+make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_defconfig -C ../buildroot-2020.02.8/ O=$(pwd) defconfig
+
 make
 
 make gconfig

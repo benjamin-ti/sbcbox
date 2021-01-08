@@ -1,1 +1,4 @@
 source "$BR2_EXTERNAL_BENSBBB_PATH/package/hello/Config.in"
+source "$BR2_EXTERNAL_BENSBBB_PATH/package/ti-sgx-km-new/Config.in"
+source "$BR2_EXTERNAL_BENSBBB_PATH/package/ti-sgx-um-new/Config.in"
+source "$BR2_EXTERNAL_BENSBBB_PATH/package/ti-sgx-demos-new/Config.in"

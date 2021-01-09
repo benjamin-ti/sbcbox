@@ -1,6 +1,6 @@
 ################################################################################
 #
-# ti-sgx-um
+# ti-sgx-um-new
 #
 ################################################################################
 
@@ -29,7 +29,7 @@ endef
 TI_SGX_UM_NEW_POST_INSTALL_TARGET_HOOKS += TI_SGX_UM_NEW_INSTALL_CONF
 
 define TI_SGX_UM_NEW_INSTALL_INIT_SYSV
-	$(INSTALL) -D -m 0755 package/ti-sgx-um/S80ti-sgx \
+	$(INSTALL) -D -m 0755 $(BR2_EXTERNAL_BENSBBB_PATH)/package/ti-sgx-um-new/S80ti-sgx \
 		$(TARGET_DIR)/etc/init.d/S80ti-sgx
 endef
 

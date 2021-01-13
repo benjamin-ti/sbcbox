@@ -1,0 +1,4 @@
+config BR2_PACKAGE_SAMPLE2
+    bool "Sample2"
+    help
+        Hello Sample2 package

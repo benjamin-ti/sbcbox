@@ -20,7 +20,7 @@ make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_defconfig -C ..
 
 make
 
-make gconfig
+make xconfig
 make savedefconfig
 
 make linux-menuconfig

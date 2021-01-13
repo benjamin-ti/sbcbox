@@ -1,6 +1,6 @@
 bootpart=0:1
 devtype=mmc
-fdtfile=am335x-boneblack-bt.dtb
+fdtfile=am335x-boneblack-4DCap-bt.dtb
 bootdir=
 bootfile=zImage
 bootpartition=mmcblk0p2

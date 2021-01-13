@@ -7,3 +7,6 @@ if test -z "${XDG_RUNTIME_DIR}"; then
 fi
 
 export QT_QPA_EGLFS_INTEGRATION=none
+export QT_QPA_PLATFORM=linuxfb
+
+# export QWS_MOUSE_PROTO=linuxinput:/dev/input/event0

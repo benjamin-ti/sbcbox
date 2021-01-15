@@ -1,0 +1,43 @@
+Antwort:
+<menu id="42" textid="Job Status" name="Job Status">
+<parameter id="216944524" textid="Status" name="Druckerzustand" idvalue="Idle" readonly="yes">Idle
+</parameter>
+<parameter id="216946136" textid="Error Code" name="Fehlernummer" idvalue="" readonly="yes">
+</parameter>
+<parameter id="216970212" textid="Time" name="Uhrzeit" idvalue="15:58:42" readonly="yes" size="8">15:58:42
+</parameter>
+<parameter id="216970856" textid="Date" name="Datum" idvalue="24.08.18" readonly="yes" size="8">24.08.18
+</parameter>
+<parameter id="217402444" textid="IP-Address" name="IP-Adresse" idvalue=" 10.102.  3. 62" readonly="yes" size="15"> 10.102.  3. 62
+</parameter>
+<parameter id="216971500" textid="Start/Stop Printing" name="Drucken Start/Stopp" idvalue="Button" size="6">Button
+	<list>
+		<element>Button</element>
+	</list>
+	<idlist>
+		<element>Button</element>
+	</idlist>
+</parameter>
+<parameter id="216972136" textid="Abort Printing" name="Druck abbrechen" idvalue="Button" size="6">Button
+	<list>
+		<element>Button</element>
+	</list>
+	<idlist>
+		<element>Button</element>
+	</idlist>
+</parameter>
+<parameter id="216972768" textid="Job Name" name="Job Name" idvalue="noname" readonly="yes">noname
+</parameter>
+<parameter id="216973908" textid="PrintedLabelInfo" name="Druckertyp" idvalue="0/1" readonly="yes">0/1
+</parameter>
+<parameter id="216974644" textid="Labels Printed" name="Gedruckte Etiketten" idvalue="0" readonly="yes">0
+</parameter>
+<parameter id="216975492" textid="Total Labels" name="Druckauftrag Stück" idvalue="1" readonly="yes">1
+</parameter>
+<parameter id="216976340" textid="Printing Speed" name="Druckgeschwindigkeit" idvalue="50" readonly="yes">50
+</parameter>
+<parameter id="216977072" textid="Time Left" name="Verbleibende Zeit" idvalue="--:--:--" readonly="yes">--:--:--
+</parameter>
+<parameter id="216939368" textid="Roll Diameter" name="Roll Diameter" idvalue="80" readonly="yes">80
+</parameter>
+</menu>

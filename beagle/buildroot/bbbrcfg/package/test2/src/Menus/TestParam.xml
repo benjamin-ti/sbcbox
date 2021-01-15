@@ -1,0 +1,153 @@
+<menu id="120" textid="TestParm" name="TestParm">
+	<menu id="121" textid="Passwd" name="Passwd"/>
+<parameter id="217364032" textid="UShort" name="UShort" idvalue="123" minvalue="0" maxvalue="65535" size="5">123
+</parameter>
+<parameter id="217364944" textid="Int32_RO" name="Int32_RO" idvalue="123456789" readonly="yes" minvalue="0" maxvalue="4294967294" size="10">123456789
+</parameter>
+<parameter id="217365616" textid="ULong" name="ULong" idvalue="1234567890" minvalue="0" maxvalue="4294967295" size="10">1234567890
+</parameter>
+<parameter id="217366512" textid="Double" name="Double" idvalue="0" minvalue="-2147483647" maxvalue="2147483647" size="11">0
+</parameter>
+<parameter id="217367184" textid="String_2Sign" name="String_2Sign" idvalue="" size="2">
+</parameter>
+<parameter id="217367824" textid="String_MaxLen" name="String_MaxLen" idvalue="">
+</parameter>
+<parameter id="217368588" textid="UChar" name="UChar" idvalue="0" minvalue="0" maxvalue="3" size="1">0
+</parameter>
+<parameter id="217369236" textid="Int16" name="Int16" idvalue="0" minvalue="-1999" maxvalue="3478" size="5">0
+</parameter>
+<parameter id="217369896" textid="Int8" name="Int8" idvalue="-3" minvalue="-3" maxvalue="31" size="2">-3
+</parameter>
+<parameter id="217370556" textid="Int" name="Int" idvalue="-500" minvalue="-500" maxvalue="400" size="4">-500
+</parameter>
+<parameter id="217371224" textid="UInt" name="UInt" idvalue="0" minvalue="0" maxvalue="200" size="3">0
+</parameter>
+<parameter id="217371884" textid="Float1_RO" name="Float1_RO" idvalue="50.0" readonly="yes" minvalue="0.0" maxvalue="100.0" size="5">50.0
+</parameter>
+<parameter id="217372576" textid="UFloat1" name="UFloat1" idvalue="50.0" minvalue="0.0" maxvalue="100.0" size="6">50.0
+</parameter>
+<parameter id="217373252" textid="Float1" name="Float1" idvalue="50.0" minvalue="-49.9" maxvalue="100.0" size="6">50.0
+</parameter>
+<parameter id="217373928" textid="Float2" name="Float2" idvalue="5.00" minvalue="-9.46" maxvalue="10.00" size="5">5.00
+</parameter>
+<parameter id="217374608" textid="Bool" name="Bool" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217375248" textid="Enum" name="Enum" idvalue="Zero" size="5">Zero
+	<list>
+		<element>Zero</element>
+		<element>One</element>
+		<element>Two</element>
+		<element>Three</element>
+		<element>Four</element>
+		<element>Five</element>
+	</list>
+	<idlist>
+		<element>Zero</element>
+		<element>One</element>
+		<element>Two</element>
+		<element>Three</element>
+		<element>Four</element>
+		<element>Five</element>
+	</idlist>
+</parameter>
+<parameter id="217375920" textid="UInt16_List" name="UInt16_List" idvalue="1" size="2">1
+	<list>
+		<element>1</element>
+		<element>2</element>
+		<element>3</element>
+		<element>4</element>
+		<element>5</element>
+		<element>6</element>
+		<element>7</element>
+		<element>8</element>
+		<element>9</element>
+		<element>10</element>
+		<element>11</element>
+		<element>12</element>
+		<element>13</element>
+		<element>14</element>
+		<element>15</element>
+		<element>16</element>
+		<element>17</element>
+		<element>18</element>
+		<element>19</element>
+		<element>20</element>
+		<element>21</element>
+		<element>22</element>
+		<element>23</element>
+		<element>24</element>
+		<element>25</element>
+		<element>26</element>
+		<element>27</element>
+		<element>28</element>
+		<element>29</element>
+		<element>30</element>
+	</list>
+	<idlist>
+		<element>1</element>
+		<element>2</element>
+		<element>3</element>
+		<element>4</element>
+		<element>5</element>
+		<element>6</element>
+		<element>7</element>
+		<element>8</element>
+		<element>9</element>
+		<element>10</element>
+		<element>11</element>
+		<element>12</element>
+		<element>13</element>
+		<element>14</element>
+		<element>15</element>
+		<element>16</element>
+		<element>17</element>
+		<element>18</element>
+		<element>19</element>
+		<element>20</element>
+		<element>21</element>
+		<element>22</element>
+		<element>23</element>
+		<element>24</element>
+		<element>25</element>
+		<element>26</element>
+		<element>27</element>
+		<element>28</element>
+		<element>29</element>
+		<element>30</element>
+	</idlist>
+</parameter>
+<parameter id="217376648" textid="Flag_List" name="Flag_List" idvalue="flag1" size="5">flag1
+	<list>
+		<element>flag1</element>
+		<element>flag2</element>
+		<element>flag3</element>
+		<element>flag4</element>
+		<element>flag5</element>
+	</list>
+	<idlist>
+		<element>flag1</element>
+		<element>flag2</element>
+		<element>flag3</element>
+		<element>flag4</element>
+		<element>flag5</element>
+	</idlist>
+</parameter>
+<parameter id="217377328" textid="IPAddr" name="IPAddr" idvalue="192.164.  7. 51">192.164.  7. 51
+</parameter>
+<parameter id="217378108" textid="MACAddr" name="MACAddr" idvalue="00:00:00:00:00:00">00:00:00:00:00:00
+</parameter>
+<parameter id="217378860" textid="TestTime" name="TestTime" idvalue="09:00:00" size="8">09:00:00
+</parameter>
+<parameter id="217379504" textid="TestDate" name="TestDate" idvalue="28.02.77">28.02.77
+</parameter>
+<parameter id="217385056" textid="IOStateOutput" name="IOStateOutput" idvalue="xxxxxxxxxxxxxxxx" size="16">xxxxxxxxxxxxxxxx
+</parameter>
+</menu>

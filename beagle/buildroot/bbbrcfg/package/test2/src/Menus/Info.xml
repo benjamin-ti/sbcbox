@@ -1,0 +1,48 @@
+<menu id="50" textid="Info" name="Info">
+<parameter id="216946820" textid="Printer type" name="Druckertyp" idvalue="Compa II 162/12" size="24">Compa II 162/12
+	<list>
+		<element>Compa II 104/8</element>
+		<element>Compa II 106/12</element>
+		<element>Compa II 106/24</element>
+		<element>Compa II 162/12</element>
+		<element>Compa II 103/8 T</element>
+		<element>Compa II 108/12T</element>
+		<element>Compa II 162/12T</element>
+		<element>Compa II 103/8</element>
+		<element>Compa II 108/12</element>
+	</list>
+	<idlist>
+		<element>Compa II 104/8</element>
+		<element>Compa II 106/12</element>
+		<element>Compa II 106/24</element>
+		<element>Compa II 162/12</element>
+		<element>Compa II 103/8 T</element>
+		<element>Compa II 108/12T</element>
+		<element>Compa II 162/12T</element>
+		<element>Compa II 103/8</element>
+		<element>Compa II 108/12</element>
+	</idlist>
+</parameter>
+<parameter id="217116204" textid="FirmwareAndBuild" name="Version Firmware" idvalue="V1.73 Build 2111" readonly="yes">V1.73 Build 2111
+</parameter>
+<parameter id="217118720" textid="Firmware Time of Build" name="Firmware erstellt am" idvalue="Apr 23 2018" readonly="yes">Apr 23 2018
+</parameter>
+<parameter id="217402444" textid="IP-Address" name="IP-Adresse" idvalue=" 10.102.  3. 62" readonly="yes" size="15"> 10.102.  3. 62
+</parameter>
+<parameter id="217112580" textid="Printer Name" name="Druckername" idvalue="LabelPrt01" readonly="yes">LabelPrt01
+</parameter>
+<parameter id="217125636" textid="SVN Version" name="SVN Version" idvalue="10289" readonly="yes">10289
+</parameter>
+<parameter id="217117840" textid="Hardware Version" name="Version Hardware" idvalue="SB 0  HW 32" readonly="yes">SB 0  HW 32
+</parameter>
+<parameter id="217124760" textid="LCDVersion" name="LCD Version" idvalue="2.0.2" readonly="yes">2.0.2
+</parameter>
+<parameter id="217119608" textid="Version Bitmap-Font" name="Version Bitmap-Font" idvalue="B-Font: V5.01" readonly="yes">B-Font: V5.01
+</parameter>
+<parameter id="217120488" textid="Version TrueDoc-Font" name="Version TrueDoc-Font" idvalue="V-Font: V91.00" readonly="yes">V-Font: V91.00
+</parameter>
+<parameter id="217121376" textid="Version FPGA" name="Version FPGA" idvalue="FPGA V:3.71.0.118" readonly="yes">FPGA V:3.71.0.118
+</parameter>
+<parameter id="217122248" textid="Memory Config" name="Speicherkonfig." idvalue="8MB F/16MB RAM" readonly="yes">8MB F/16MB RAM
+</parameter>
+</menu>

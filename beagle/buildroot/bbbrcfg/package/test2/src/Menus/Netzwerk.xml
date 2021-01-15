@@ -1,0 +1,46 @@
+<menu id="97" textid="Network" name="Netzwerk">
+<parameter id="217401192" textid="IP-Address" name="IP-Adresse" idvalue=" 10.102.  3. 62" size="15"> 10.102.  3. 62
+</parameter>
+<parameter id="217403716" textid="Netmask" name="Netzmaske" idvalue="255.255.255.  0" size="15">255.255.255.  0
+</parameter>
+<parameter id="217404960" textid="Standard Gateway" name="Standard Gateway" idvalue=" 10.102.  3.  1" size="15"> 10.102.  3.  1
+</parameter>
+<parameter id="217406216" textid="Speed and Duplex" name="Geschw.   Duplex" idvalue="Auto" size="12">Automatisch
+	<list>
+		<element>Automatisch</element>
+		<element>10MBit      Halb</element>
+		<element>10MBit      Voll</element>
+		<element>100MBit     Halb</element>
+		<element>100MBit     Voll</element>
+	</list>
+	<idlist>
+		<element>Auto</element>
+		<element>10MBit Half</element>
+		<element>10MBit Full</element>
+		<element>100MBit Half</element>
+		<element>100MBit Full</element>
+	</idlist>
+</parameter>
+<parameter id="217407512" textid="DHCP" name="DHCP" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217408728" textid="Printer Name" name="Druckername" idvalue="LabelPrt01" size="15">LabelPrt01
+</parameter>
+<parameter id="217203792" textid="MAC-Address" name="MAC-Adresse" idvalue="00:07:4a:f0:fb:f4" readonly="yes">00:07:4a:f0:fb:f4
+</parameter>
+<parameter id="217409720" textid="Apply network settings" name="Netzwerk Einst." idvalue="Button" size="6">Button
+	<list>
+		<element>Button</element>
+	</list>
+	<idlist>
+		<element>Button</element>
+	</idlist>
+</parameter>
+</menu>

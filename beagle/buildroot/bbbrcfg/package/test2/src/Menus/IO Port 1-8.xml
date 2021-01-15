@@ -1,0 +1,114 @@
+<menu id="124" textid="I/O Port Mode 1-8" name="I/O·Port·Mode·1-8">
+<parameter id="217123812" textid="Input Print Start (and Cut)" name="Input Druckstart (und Schnitt)" idvalue="Input rise" size="16">Flanke steigend
+	<list>
+		<element>Aus</element>
+		<element>Flanke steigend</element>
+		<element>Flanke fallend</element>
+		<element>Flankenwechsel</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Input off</element>
+		<element>Input rise</element>
+		<element>Input fall</element>
+		<element>Input transition</element>
+		<element>Input software</element>
+	</idlist>
+</parameter>
+<parameter id="217386580" textid="Input Reprint Label" name="Input Reprint Label" idvalue="Input rise" size="16">Flanke steigend
+	<list>
+		<element>Aus</element>
+		<element>Flanke steigend</element>
+		<element>Flanke fallend</element>
+		<element>Flankenwechsel</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Input off</element>
+		<element>Input rise</element>
+		<element>Input fall</element>
+		<element>Input transition</element>
+		<element>Input software</element>
+	</idlist>
+</parameter>
+<parameter id="217387476" textid="Input Reset Numerator" name="Input Numerator zurücksetzen" idvalue="Input rise" size="16">Flanke steigend
+	<list>
+		<element>Aus</element>
+		<element>Flanke steigend</element>
+		<element>Flanke fallend</element>
+		<element>Flankenwechsel</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Input off</element>
+		<element>Input rise</element>
+		<element>Input fall</element>
+		<element>Input transition</element>
+		<element>Input software</element>
+	</idlist>
+</parameter>
+<parameter id="217388428" textid="Input Applicator Continue Apply" name="Input Applicator Continue Apply" idvalue="Input rise" size="16">Flanke steigend
+	<list>
+		<element>Aus</element>
+		<element>Flanke steigend</element>
+		<element>Flanke fallend</element>
+		<element>Flankenwechsel</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Input off</element>
+		<element>Input rise</element>
+		<element>Input fall</element>
+		<element>Input transition</element>
+		<element>Input software</element>
+	</idlist>
+</parameter>
+<parameter id="217389360" textid="Input Reset Error" name="Input Reset Error" idvalue="Input rise" size="16">Flanke steigend
+	<list>
+		<element>Aus</element>
+		<element>Flanke steigend</element>
+		<element>Flanke fallend</element>
+		<element>Flankenwechsel</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Input off</element>
+		<element>Input rise</element>
+		<element>Input fall</element>
+		<element>Input transition</element>
+		<element>Input software</element>
+	</idlist>
+</parameter>
+<parameter id="217390296" textid="Input Cancel all printjobs" name="Input Cancel all printjobs" idvalue="Input rise" size="16">Flanke steigend
+	<list>
+		<element>Aus</element>
+		<element>Flanke steigend</element>
+		<element>Flanke fallend</element>
+		<element>Flankenwechsel</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Input off</element>
+		<element>Input rise</element>
+		<element>Input fall</element>
+		<element>Input transition</element>
+		<element>Input software</element>
+	</idlist>
+</parameter>
+<parameter id="217391228" textid="Disabled" name="Inaktiv" idvalue="Off" readonly="yes" size="3">Aus
+	<list>
+		<element>Aus</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+	</idlist>
+</parameter>
+<parameter id="217392036" textid="Disabled" name="Inaktiv" idvalue="Off" readonly="yes" size="3">Aus
+	<list>
+		<element>Aus</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+	</idlist>
+</parameter>
+</menu>

@@ -1,0 +1,100 @@
+<menu id="75" textid="LayoutSettings" name="Layouteinstellungen">
+<parameter id="217067300" textid="Labellength" name="Etikettenlänge" idvalue="59.4" minvalue="0.0" maxvalue="6000.0" size="6">59.4
+</parameter>
+<parameter id="217068236" textid="Gap" name="Schlitzlänge" idvalue="3.5" minvalue="0.0" maxvalue="500.0" size="5">3.5
+</parameter>
+<parameter id="217069012" textid="Label Width" name="Etikettenbreite" idvalue="162.7" minvalue="1.0" maxvalue="216.9" size="5">162.7
+</parameter>
+<parameter id="217069952" textid="No. of Columns" name="Anzahl Bahnen" idvalue="1" minvalue="1" maxvalue="9" size="1">1
+</parameter>
+<parameter id="217070844" textid="Type of Label" name="Etikettentyp" idvalue="Adhesive Labels" size="17">Haftetiketten
+	<list>
+		<element>Haftetiketten</element>
+		<element>Endlosetiketten</element>
+	</list>
+	<idlist>
+		<element>Adhesive Labels</element>
+		<element>Continuous Labels</element>
+	</idlist>
+</parameter>
+<parameter id="217071640" textid="Measure Label" name="Etikett messen" idvalue="Button" size="6">Button
+	<list>
+		<element>Button</element>
+	</list>
+	<idlist>
+		<element>Button</element>
+	</idlist>
+</parameter>
+<parameter id="217072388" textid="Material" name="Materialauswahl" idvalue="Type 1" size="6">Typ 1
+	<list>
+		<element>Typ 1</element>
+		<element>Typ 2</element>
+	</list>
+	<idlist>
+		<element>Type 1</element>
+		<element>Type 2</element>
+	</idlist>
+</parameter>
+<parameter id="217073140" textid="Photocell" name="Lichtschranken Typ" idvalue="Trans. normal" size="17">Durchlicht normal
+	<list>
+		<element>Durchlicht normal</element>
+		<element>Reflexion normal</element>
+		<element>Durchlicht invers</element>
+		<element>Reflexion invers</element>
+		<element>Durchlicht 2</element>
+	</list>
+	<idlist>
+		<element>Trans. normal</element>
+		<element>Reflexion normal</element>
+		<element>Trans. inverse</element>
+		<element>Reflexion inverse</element>
+		<element>Transmission2</element>
+	</idlist>
+</parameter>
+<parameter id="217073976" textid="Label sync position" name="Abtastposition" idvalue="10" minvalue="1" maxvalue="99" size="2">10
+</parameter>
+<parameter id="217074788" textid="Errorlength" name="Etiketten Fehlerlänge" idvalue="150" minvalue="0" maxvalue="999" size="3">150
+</parameter>
+<parameter id="217075544" textid="Sync" name="Erkennung fehlende Etiketten" idvalue="On" size="3">Ein
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217076276" textid="Flip Label" name="Etikett spiegeln" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217077032" textid="Rotate Label" name="Etikett drehen" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217077796" textid="Alignment" name="Ausrichtung" idvalue="Left" size="6">Links
+	<list>
+		<element>Links</element>
+		<element>Mitte</element>
+		<element>Rechts</element>
+	</list>
+	<idlist>
+		<element>Left</element>
+		<element>Center</element>
+		<element>Right</element>
+	</idlist>
+</parameter>
+</menu>

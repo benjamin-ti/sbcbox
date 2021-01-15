@@ -1,0 +1,4 @@
+config BR2_PACKAGE_TEST2
+    bool "test2"
+    help
+        This is the HMI Testproject Qt test2 package application

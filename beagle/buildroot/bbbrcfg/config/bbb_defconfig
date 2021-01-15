@@ -1,5 +1,6 @@
 BR2_arm=y
 BR2_cortex_a8=y
+BR2_DL_DIR="$HOME/buildroot_dl"
 BR2_GLOBAL_PATCH_DIR="board/beaglebone/patches ../bbbrcfg/patches"
 BR2_TOOLCHAIN_EXTERNAL=y
 BR2_ROOTFS_DEVICE_CREATION_DYNAMIC_EUDEV=y

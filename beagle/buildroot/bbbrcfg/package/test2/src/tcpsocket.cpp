@@ -1,6 +1,6 @@
 #include "tcpsocket.h"
-
-
+#include <iostream>
+extern const char *g;
 TCPSocket::TCPSocket(QObject *parent) :
     QObject(parent)
 {
@@ -13,8 +13,7 @@ TCPSocket::TCPSocket(QObject *parent) :
 void TCPSocket::doConnect(bool send)
 {
     socket = new QTcpSocket(this);
-
-    socket->connectToHost("10.102.3.62", 9100);
+    socket->connectToHost(g, 9099);
 
     if(socket->waitForConnected(5000))
     {

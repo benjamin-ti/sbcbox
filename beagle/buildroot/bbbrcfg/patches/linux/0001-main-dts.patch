@@ -1,7 +1,7 @@
 diff -U 3 -H -d -r -N -- /home/user/workspace/bbbrout1/build/linux-custom/arch/arm/boot/dts/am335x-boneblack-4DCap-bt.dts /home/user/workspace/bblxcompare/build/linux-custom/arch/arm/boot/dts/am335x-boneblack-4DCap-bt.dts
 --- a/arch/arm/boot/dts/am335x-boneblack-4DCap-bt.dts	2020-12-28 09:30:42.000000000 +0100
 +++ b/arch/arm/boot/dts/am335x-boneblack-4DCap-bt.dts	1970-01-01 01:00:00.000000000 +0100
-@@ -0,0 +1,303 @@
+@@ -0,0 +1,304 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
@@ -12,7 +12,8 @@ diff -U 3 -H -d -r -N -- /home/user/workspace/bbbrout1/build/linux-custom/arch/a
 +#include "am335x-bone-common.dtsi"
 +#include "am335x-boneblack-common.dtsi"
 +// #include "am335x-bone-pinmux-ttyS2.dtsi"
-+#include "BB-SPIDEV0.dtsi"
++// #include "BB-SPIDEV0.dtsi"
++#include "am335x-uart2-spi0-univ.dtsi"
 +/* #include "am335x-bone-jtag.dtsi" */
 +
 +#include <dt-bindings/interrupt-controller/irq.h>
@@ -308,7 +309,7 @@ diff -U 3 -H -d -r -N -- /home/user/workspace/bbbrout1/build/linux-custom/arch/a
 diff -U 3 -H -d -r -N -- /home/user/workspace/bbbrout1/build/linux-custom/arch/arm/boot/dts/am335x-boneblack-bt.dts /home/user/workspace/bblxcompare/build/linux-custom/arch/arm/boot/dts/am335x-boneblack-bt.dts
 --- a/arch/arm/boot/dts/am335x-boneblack-bt.dts	2020-12-28 10:13:13.000000000 +0100
 +++ b/arch/arm/boot/dts/am335x-boneblack-bt.dts	1970-01-01 01:00:00.000000000 +0100
-@@ -0,0 +1,44 @@
+@@ -0,0 +1,45 @@
 +// SPDX-License-Identifier: GPL-2.0-only
 +/*
 + * Copyright (C) 2012 Texas Instruments Incorporated - http://www.ti.com/
@@ -319,7 +320,8 @@ diff -U 3 -H -d -r -N -- /home/user/workspace/bbbrout1/build/linux-custom/arch/a
 +#include "am335x-bone-common.dtsi"
 +#include "am335x-boneblack-common.dtsi"
 +// #include "am335x-bone-pinmux-ttyS2.dtsi"
-+#include "BB-SPIDEV0.dtsi"
++// #include "BB-SPIDEV0.dtsi"
++#include "am335x-uart2-spi0-univ.dtsi"
 +/* #include "am335x-bone-jtag.dtsi" */
 +
 +/ {

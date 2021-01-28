@@ -1,0 +1,213 @@
+--- a/arch/arm/boot/dts/am335x-uart2-spi0-univ.dtsi	1970-01-01 01:00:00.000000000 +0100
++++ b/arch/arm/boot/dts/am335x-uart2-spi0-univ.dtsi	2021-01-27 14:56:42.000000000 +0100
+@@ -0,0 +1,210 @@
++
++/ {
++    compatible = "ti,beaglebone", "ti,beaglebone-black";
++
++    /* identification */
++    part-number = "cape-bone-universala";
++
++    /* state the resources this cape uses */
++    exclusive-use =
++        "P9.21",
++        "P9.22";
++};
++        
++&am33xx_pinmux {        
++    /* P9_21 (ZCZ ball B17) */
++    P9_21_default_pin: pinmux_P9_21_default_pin {
++        pinctrl-single,pins = <0x154  0x37>; };     /* Mode 7, Pull-Up, RxActive */
++    P9_21_gpio_pin: pinmux_P9_21_gpio_pin {
++        pinctrl-single,pins = <0x154  0x2F>; };     /* Mode 7, RxActive */
++    P9_21_gpio_pu_pin: pinmux_P9_21_gpio_pu_pin {
++        pinctrl-single,pins = <0x154  0x37>; };     /* Mode 7, Pull-Up, RxActive */
++    P9_21_gpio_pd_pin: pinmux_P9_21_gpio_pd_pin {
++        pinctrl-single,pins = <0x154  0x27>; };     /* Mode 7, Pull-Down, RxActive */
++    P9_21_spi_pin: pinmux_P9_21_spi_pin {
++        pinctrl-single,pins = <0x154  0x30>; };     /* Mode 0, Pull-Up, RxActive */
++    P9_21_uart_pin: pinmux_P9_21_uart_pin {
++        pinctrl-single,pins = <0x154  0x31>; };     /* Mode 1, Pull-Up, RxActive */
++    P9_21_i2c_pin: pinmux_P9_21_i2c_pin {
++        pinctrl-single,pins = <0x154  0x32>; };     /* Mode 2, Pull-Up, RxActive */
++    P9_21_pwm_pin: pinmux_P9_21_pwm_pin {
++        pinctrl-single,pins = <0x154  0x33>; };     /* Mode 3, Pull-Up, RxActive */
++    P9_21_pru_uart_pin: pinmux_P9_21_pru_uart_pin {
++        pinctrl-single,pins = <0x154  0x34>; };     /* Mode 4, Pull-Up, RxActive */
++
++    /* P9_22 (ZCZ ball A17) */
++    P9_22_default_pin: pinmux_P9_22_default_pin {
++        pinctrl-single,pins = <0x150  0x37>; };     /* Mode 7, Pull-Up, RxActive */
++    P9_22_gpio_pin: pinmux_P9_22_gpio_pin {
++        pinctrl-single,pins = <0x150  0x2F>; };     /* Mode 7, RxActive */
++    P9_22_gpio_pu_pin: pinmux_P9_22_gpio_pu_pin {
++        pinctrl-single,pins = <0x150  0x37>; };     /* Mode 7, Pull-Up, RxActive */
++    P9_22_gpio_pd_pin: pinmux_P9_22_gpio_pd_pin {
++        pinctrl-single,pins = <0x150  0x27>; };     /* Mode 7, Pull-Down, RxActive */
++    P9_22_spi_pin: pinmux_P9_22_spi_pin {
++        pinctrl-single,pins = <0x150  0x30>; };     /* Mode 0, Pull-Up, RxActive */
++    P9_22_uart_pin: pinmux_P9_22_uart_pin {
++        pinctrl-single,pins = <0x150  0x31>; };     /* Mode 1, Pull-Up, RxActive */
++    P9_22_i2c_pin: pinmux_P9_22_i2c_pin {
++        pinctrl-single,pins = <0x150  0x32>; };     /* Mode 2, Pull-Up, RxActive */
++    P9_22_pwm_pin: pinmux_P9_22_pwm_pin {
++        pinctrl-single,pins = <0x150  0x33>; };     /* Mode 3, Pull-Up, RxActive */
++    P9_22_pru_uart_pin: pinmux_P9_22_pru_uart_pin {
++        pinctrl-single,pins = <0x150  0x34>; };     /* Mode 4, Pull-Up, RxActive */
++};
++
++
++/************************/
++/* Pin Multiplexing     */
++/************************/
++
++&ocp {        
++    P9_21_pinmux {
++        compatible = "bone-pinmux-helper";
++        status = "okay";
++        pinctrl-names = "default", "gpio", "gpio_pu", "gpio_pd", "spi", "uart", "i2c", "pwm", "pru_uart";
++        pinctrl-0 = <&P9_21_default_pin>;
++        pinctrl-1 = <&P9_21_gpio_pin>;
++        pinctrl-2 = <&P9_21_gpio_pu_pin>;
++        pinctrl-3 = <&P9_21_gpio_pd_pin>;
++        pinctrl-4 = <&P9_21_spi_pin>;
++        pinctrl-5 = <&P9_21_uart_pin>;
++        pinctrl-6 = <&P9_21_i2c_pin>;
++        pinctrl-7 = <&P9_21_pwm_pin>;
++        pinctrl-8 = <&P9_21_pru_uart_pin>;
++    };
++
++    P9_22_pinmux {
++        compatible = "bone-pinmux-helper";
++        status = "okay";
++        pinctrl-names = "default", "gpio", "gpio_pu", "gpio_pd", "spi", "uart", "i2c", "pwm", "pru_uart";
++        pinctrl-0 = <&P9_22_default_pin>;
++        pinctrl-1 = <&P9_22_gpio_pin>;
++        pinctrl-2 = <&P9_22_gpio_pu_pin>;
++        pinctrl-3 = <&P9_22_gpio_pd_pin>;
++        pinctrl-4 = <&P9_22_spi_pin>;
++        pinctrl-5 = <&P9_22_uart_pin>;
++        pinctrl-6 = <&P9_22_i2c_pin>;
++        pinctrl-7 = <&P9_22_pwm_pin>;
++        pinctrl-8 = <&P9_22_pru_uart_pin>;
++    };
++};
++    
++&ocp {        
++    // !!!WARNING!!!
++    // gpio-of-helper &gpio pointers are off-by-one vs. the hardware:
++    //   hardware GPIO bank 0 = &gpio1
++    cape-universal {
++        compatible = "gpio-of-helper";
++        status = "okay";
++        pinctrl-names = "default";
++        pinctrl-0 = <>;
++
++        P9_21 {
++            gpio-name = "P9_21";
++            gpio = <&gpio1 3 0>;
++            input;
++            dir-changeable;
++        };
++        P9_22 {
++            gpio-name = "P9_22";
++            gpio = <&gpio1 2 0>;
++            input;
++            dir-changeable;
++        };
++    };
++};
++
++
++/************************/
++/* UARTs                */
++/************************/
++
++/* really uart1 */
++&uart2 {
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <>; 
++};
++
++/* really uart2 */
++&uart3 {
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <>; 
++};
++
++/* really uart4 */
++&uart5 {
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <>; 
++};
++
++    
++/************************/
++/* SPI                  */
++/************************/
++
++/* spi0 is numbered correctly */
++&spi0 {
++    #address-cells = <1>;
++    #size-cells = <0>;
++
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <>; 
++
++    spi0channel@0 {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        compatible = "spidev";
++
++        reg = <0>;
++        spi-max-frequency = <24000000>;
++        spi-cpha;
++    };
++
++
++    spi0channel@1 {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        compatible = "spidev";
++
++        reg = <1>;
++        spi-max-frequency = <24000000>;
++    };
++};
++
++/* spi1 is numbered correctly */
++&spi1 {
++    status = "okay";
++    pinctrl-names = "default";
++    pinctrl-0 = <>; 
++
++    #address-cells = <1>;
++    #size-cells = <0>;
++
++    spi1channel@0 {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        compatible = "spidev";
++
++        reg = <0>;
++        spi-max-frequency = <24000000>;
++        spi-cpha;
++    };
++
++    spi1channel@1 {
++        #address-cells = <1>;
++        #size-cells = <0>;
++
++        compatible = "spidev";
++
++        reg = <1>;
++        spi-max-frequency = <24000000>;
++    };
++};

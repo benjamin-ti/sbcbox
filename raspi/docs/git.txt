@@ -1,0 +1,7 @@
+Sparse Checkout:
+
+git init
+git remote add origin https://github.com/torvalds/linux.git
+git config core.sparsecheckout true
+echo "tools/spi" >> .git/info/sparse-checkout
+git pull --depth=1 origin master

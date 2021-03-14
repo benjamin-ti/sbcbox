@@ -1,0 +1,6 @@
+Software für den China-Saleae Logic-Analyzer Clone:
+
+sudo apt-get install pulseview
+sudo apt-get install sigrok # Treiber für Saleae-Clone
+
+starten mit sudo pulseview

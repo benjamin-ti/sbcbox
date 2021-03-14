@@ -1,9 +1,9 @@
-CC=arm-linux-gnueabihf-gcc -g 
+CC=arm-linux-gnueabihf-gcc -g --sysroot /opt/pi/sysroot
 
 all: mkO O/rgpio
 
 O/rgpio: O/rgpio.o
-	$(CC) $(LDFLAGS) $< $(LOADLIBES) $(LDLIBS) -o $@
+	$(CC) $(LDFLAGS) $< $(LOADLIBES) $(LDLIBS) -lgpiod -o $@
 
 mkO:
 	mkdir -p O

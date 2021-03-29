@@ -34,9 +34,11 @@
 
 /*-------------------------------- Makros ---------------------------------*/
 
-#define VERSION$ "0.1"
+#define VERSION$ "1.0"
 
 #define PrintfErrAndExit(fmt, ...)  PrintfErrorAndExitReal(__LINE__, fmt, ##__VA_ARGS__)
+#define Atmega_GetInstruct(IDATMEL, IDINSTRUCT, PINSTRUCT) \
+            Atmega_GetInstructReal(IDATMEL, IDINSTRUCT, PINSTRUCT, __LINE__)
 #define ARRAY_SIZE(array) sizeof(array)/sizeof(array[0])
 
 /*--------------------------- Typdeklarationen ----------------------------*/
@@ -55,7 +57,8 @@ static void WriteValue2File(char* pcFile, char* pcValue);
 /*------------------------ Konstantendeklarationen ------------------------*/
 
 static const char* lk_spidev = "/dev/spidev1.1";
-static const AtmelID idATMEL = ATMEGA64;
+static const AtmelID lk_idATMEL = ATMEGA64;
+static const uint32_t lk_speed = 500000;
 
 /*------------------------- modulglobale Variable -------------------------*/
 
@@ -64,6 +67,8 @@ static BOOL   lk_pinsAreSetToSPI;
 static MBOARD lk_board = MBOARD_CV;
 static int lk_verbose;
 static BOOL   lk_isTestOnly;
+static BOOL   lk_isVerify;
+static BOOL   lk_isVerifyOnly;
 
 /*. ENDLOCAL ==============================================================*/
 
@@ -171,6 +176,12 @@ static int HandleOptions(int argc, char *argv[])
                     break;
                 case 't':
                     lk_isTestOnly = TRUE;
+                    break;
+                case 'm':
+                    lk_isVerify = TRUE;
+                    break;
+                case 'n':
+                    lk_isVerifyOnly = TRUE;
                     break;
                 default:
                     printf("unknown option %s\n", argv[i]);
@@ -331,7 +342,7 @@ static VC_BOOL SPI_WriteAtmelFuses(int fd, TYAtmelDevice *pObjAtmelDev)
 
     if (NULL != pObjAtmelDev)
     {
-        if( RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE, sndBuf))
         {
 #ifdef LINUX_SUPPORT
             sndBuf[BYTE4] = pObjAtmelDev->fuseByteLow;
@@ -367,7 +378,7 @@ static VC_BOOL SPI_WriteAtmelFuses(int fd, TYAtmelDevice *pObjAtmelDev)
         else
             bRet = VC_FALSE;
 
-        if( ATMEGA64 == pObjAtmelDev->deviceType )
+        if (ATMEGA64 == pObjAtmelDev->deviceType)
         {
             if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE_EXTD, sndBuf))
             {
@@ -403,7 +414,7 @@ static VC_BOOL SPI_ReadAndCheckAtmelFuses(int fd, TYAtmelDevice *pObjAtmelDev)
 
     if (NULL != pObjAtmelDev)
     {
-        if( RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE, sndBuf))
         {
             if (lk_verbose >= 2)
                 printf("RdFuseBitsLowSnd: %x %x %x %x\n", sndBuf[0], sndBuf[1], sndBuf[2], sndBuf[3]);
@@ -435,7 +446,7 @@ static VC_BOOL SPI_ReadAndCheckAtmelFuses(int fd, TYAtmelDevice *pObjAtmelDev)
         else
             bRet = VC_FALSE;
 
-        if( ATMEGA64 == pObjAtmelDev->deviceType )
+        if (ATMEGA64 == pObjAtmelDev->deviceType)
         {
             if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE_EXTD, sndBuf))
             {
@@ -461,37 +472,58 @@ static VC_BOOL SPI_ReadAndCheckAtmelFuses(int fd, TYAtmelDevice *pObjAtmelDev)
 }
 
 /*=========================================================================*/
+static void SPI_DoReadCmd(int fd, TYAtmelDevice *pObjAtmelDev, unsigned char idInstruction)
+{
+    unsigned char sndBuf[ATMEGA_SIZE_INSTRUCTION];
+    char rcvBuf[ATMEGA_SIZE_INSTRUCTION];
+
+    if (NULL != pObjAtmelDev)
+    {
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, idInstruction, sndBuf))
+        {
+            if (!SPI_SendRecv(fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                PrintfErrAndExit("Error writing prog enable!\n");
+            if (idInstruction == ATMEL_READ_CMD_LOW)
+                printf("RdLow:  %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+            else if (idInstruction == ATMEL_READ_CMD_HIGH)
+                printf("RdHigh: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+            else
+                printf("Inst %u: %x %x %x %x\n", idInstruction, rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        }
+        else
+            PrintfErrAndExit("Get Instruction error!\n");
+    }
+    else
+        PrintfErrAndExit("NULL-pointer error!\n");
+}
+
+/*=========================================================================*/
+static void Atmega_GetInstructReal(AtmelID idATMEL, unsigned char idInstruction,
+                                   unsigned char *pInstruction, unsigned int uiLine)
+{
+    if (RET_OK != Atmega_GetInstruction(idATMEL, idInstruction, pInstruction))
+    {
+        PrintfErrorAndExitReal(uiLine, "Get Instruction error!\n");
+    }
+}
+
+/*=========================================================================*/
 int main(int argc, char *argv[])
 {
     int ret = 0;
     int i;
-    int fd;
-    unsigned char instruction[ATMEGA_SIZE_INSTRUCTION];
+    unsigned char sndBuf[ATMEGA_SIZE_INSTRUCTION];
+    char rcvBuf[ATMEGA_SIZE_INSTRUCTION];
     FILE* fUpdFile;
     char* pcUpdFile;
     char updFileBuf[130*2];
-    uint32_t speed = 500000;
     uint32_t mode = 0;
-    char buf[40];
     int bytesRead;
-    char* pc;
     TYAtmelDevice* pObjAtmelDev;
     TYerrno errNo = RET_OK;
 
     unsigned char ucPageAddress = 0;
     unsigned int  uiPageWords = 0;
-
-    char atmegaProgEnableSeq[]    = {0xAC, 0x53, 0x00, 0x00};
-
-    char atmegaChipErase[]        = {0xAC, 0x80, 0x00, 0x00};
-
-    char atmegaLoadProgMemPageLow[] = {0x40, 0x00, 0x00, 0x0C};
-    char atmegaLoadProgMemPageHigh[]= {0x48, 0x00, 0x00, 0x94};
-    char atmegaWriteProgMemPage[]   = {0x4C, 0x00, 0x00, 0x00};
-
-    char atmegaReadProgMemPageLow[] = {0x20, 0x00, 0x00, 0x00};
-    char atmegaReadProgMemPageHigh[]= {0x28, 0x00, 0x00, 0x00};
-
 
     if (argc == 1)
     {
@@ -543,74 +575,86 @@ int main(int argc, char *argv[])
     if (ret == -1)
         PrintfErrAndExit("Can't set spi mode on dev %s", lk_spidev);
 
-    ret = ioctl(lk_fd, SPI_IOC_WR_MAX_SPEED_HZ, &speed);
+    ret = ioctl(lk_fd, SPI_IOC_WR_MAX_SPEED_HZ, &lk_speed);
     if (ret == -1)
-        PrintfErrAndExit("Can't set max speed of %u hz on device %s", speed, lk_spidev);
+        PrintfErrAndExit("Can't set max lk_speed of %u hz on device %s", lk_speed, lk_spidev);
 
-    SPI_SendRecv(lk_fd, atmegaProgEnableSeq, buf, ARRAY_SIZE(atmegaProgEnableSeq));
-    if (lk_verbose >= 1)
-        printf("ProgEnSeq: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+    // Start Programming
+    Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_PROG_ENABLE, sndBuf);
+    {
+        if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+            PrintfErrAndExit("Error writing prog enable!\n");
+        if (lk_verbose >= 1)
+            printf("ProgEnSeq: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        if (lk_isVerify || lk_isVerifyOnly) {
+            if (rcvBuf[2] != 0x53) {
+                printf("Error ProgEnSeq: %x instead %x\n", rcvBuf[2], 0x53);
+            }
+        }
+    }
 
-    if (!SPI_WriteAtmelFuses(lk_fd, pObjAtmelDev))
-        PrintfErrAndExit("Error writing fuses!\n");
+    if (!lk_isVerifyOnly) {
+        if (!SPI_WriteAtmelFuses(lk_fd, pObjAtmelDev))
+            PrintfErrAndExit("Error writing fuses!\n");
+    }
 
-    if (!SPI_ReadAndCheckAtmelFuses(lk_fd, pObjAtmelDev))
-        PrintfErrAndExit("Error checking fuses!\n");
+    if (lk_isVerify || lk_isVerifyOnly) {
+        if (!SPI_ReadAndCheckAtmelFuses(lk_fd, pObjAtmelDev))
+            PrintfErrAndExit("Error checking fuses!\n");
+    }
 
     if (lk_isTestOnly)
     {
-        unsigned char sndBuf[ATMEGA_SIZE_INSTRUCTION];
-        char rcvBuf[ATMEGA_SIZE_INSTRUCTION];
-
-        SPI_SendRecv(lk_fd, atmegaReadProgMemPageLow, buf, ARRAY_SIZE(atmegaReadProgMemPageLow));
-        printf("atmegaReadProgMemPageLow: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-
-        SPI_SendRecv(lk_fd, atmegaReadProgMemPageHigh, buf, ARRAY_SIZE(atmegaReadProgMemPageHigh));
-        printf("atmegaReadProgMemPageHigh: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+        SPI_DoReadCmd(lk_fd, pObjAtmelDev, ATMEL_READ_CMD_LOW);
+        SPI_DoReadCmd(lk_fd, pObjAtmelDev, ATMEL_READ_CMD_HIGH);
 
         // Chip Erase
-        SPI_SendRecv(lk_fd, atmegaChipErase, buf, ARRAY_SIZE(atmegaChipErase));
-        printf("atmegaChipErase: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3], buf[4]);
+        Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_CHIP_ERASE, sndBuf);
+        {
+            if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                PrintfErrAndExit("Error chip erase!\n");
+            printf("Erase: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        }
+        VCHAL_msDelay(20);
 
-        usleep(100*1000);
-
-        SPI_SendRecv(lk_fd, atmegaReadProgMemPageLow, buf, ARRAY_SIZE(atmegaReadProgMemPageLow));
-        printf("atmegaReadProgMemPageLow: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-
-        SPI_SendRecv(lk_fd, atmegaReadProgMemPageHigh, buf, ARRAY_SIZE(atmegaReadProgMemPageHigh));
-        printf("atmegaReadProgMemPageHigh: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+        SPI_DoReadCmd(lk_fd, pObjAtmelDev, ATMEL_READ_CMD_LOW);
+        SPI_DoReadCmd(lk_fd, pObjAtmelDev, ATMEL_READ_CMD_HIGH);
 
         ucPageAddress = 0;
         i = 0;
 
-        pc = atmegaLoadProgMemPageLow;
-        pc[2] = ((unsigned char*)&i)[0];
-        pc[3] = 0x0C;
-        // printf("%x %x %x %x\n", pc[0], pc[1], pc[2], pc[3]);
-        SPI_SendRecv(lk_fd, atmegaLoadProgMemPageLow, buf, ARRAY_SIZE(atmegaLoadProgMemPageLow));
-        printf("atmegaLoadProgMemPageLow: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+        // Write Page
+        Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_LOW, sndBuf);
+        {
+            sndBuf[BYTE3] = ((unsigned char*)&i)[0];
+            sndBuf[BYTE4] = 0x0C;
+            if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                PrintfErrAndExit("Error load low!\n");
+            printf("WrLow:  %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        }
 
-        pc = atmegaLoadProgMemPageHigh;
-        pc[2] = ((unsigned char*)&i)[0];
-        pc[3] = 0x94;
-        // printf("%x %x %x %x\n", pc[0], pc[1], pc[2], pc[3]);
-        SPI_SendRecv(lk_fd, atmegaLoadProgMemPageHigh, buf, ARRAY_SIZE(atmegaLoadProgMemPageHigh));
-        printf("atmegaLoadProgMemPageHigh: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+        Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_HIGH, sndBuf);
+        {
+            sndBuf[BYTE3] = ((unsigned char*)&i)[0];
+            sndBuf[BYTE4] = 0x94;
+            if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                PrintfErrAndExit("Error load high!\n");
+            printf("WrHigh: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        }
 
-        pc = atmegaWriteProgMemPage;
-        atmegaWriteProgMemPage[1] = (ucPageAddress >> 1) & 0x7F;
-        atmegaWriteProgMemPage[2] = ((ucPageAddress & 0x01) << 7) & 0x80;
-        // printf("%x %x %x %x\n", pc[0], pc[1], pc[2], pc[3]);
-        SPI_SendRecv(lk_fd, atmegaWriteProgMemPage, buf, ARRAY_SIZE(atmegaWriteProgMemPage));
-        printf("atmegaWriteProgMemPage: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+        Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_WRITE_PROG_MEM_PAGE, sndBuf);
+        {
+            sndBuf[BYTE2] = (ucPageAddress >> 1) & 0x7F;
+            sndBuf[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
+            if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                PrintfErrAndExit("Error write page!\n");
+            printf("WrPage: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        }
 
-        usleep(4500);
+        VCHAL_msDelay(5);
 
-        SPI_SendRecv(lk_fd, atmegaReadProgMemPageLow, buf, ARRAY_SIZE(atmegaReadProgMemPageLow));
-        printf("atmegaReadProgMemPageLow: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-
-        SPI_SendRecv(lk_fd, atmegaReadProgMemPageHigh, buf, ARRAY_SIZE(atmegaReadProgMemPageHigh));
-        printf("atmegaReadProgMemPageHigh: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
+        SPI_DoReadCmd(lk_fd, pObjAtmelDev, ATMEL_READ_CMD_LOW);
+        SPI_DoReadCmd(lk_fd, pObjAtmelDev, ATMEL_READ_CMD_HIGH);
 
         CleanAndExit(0);
     }
@@ -622,10 +666,17 @@ int main(int argc, char *argv[])
     }
 
     // Chip Erase
-    SPI_SendRecv(lk_fd, atmegaChipErase, buf, ARRAY_SIZE(atmegaChipErase));
-    printf("atmegaChipErase: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3], buf[4]);
-
-    usleep(100*1000);
+    if (!lk_isVerifyOnly)
+    {
+        Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_CHIP_ERASE, sndBuf);
+        {
+            if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                PrintfErrAndExit("Error chip erase!\n");
+            if (lk_verbose >= 1)
+                printf("Erase: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+        }
+        VCHAL_msDelay(20);
+    }
 
     ucPageAddress = 0;
     i = 0;
@@ -636,60 +687,82 @@ int main(int argc, char *argv[])
         if (bytesRead <= 0)
             break;
 
-        for(uiPageWords=0; uiPageWords<bytesRead/2; uiPageWords++)
+        if (!lk_isVerifyOnly)
         {
-            pc = atmegaLoadProgMemPageLow;
-            pc[2] = ((unsigned char*)&uiPageWords)[0];
-            pc[3] = updFileBuf[uiPageWords*2];
-            // printf("%x %x %x %x\n", pc[0], pc[1], pc[2], pc[3]);
-            SPI_SendRecv(lk_fd, atmegaLoadProgMemPageLow, buf, ARRAY_SIZE(atmegaLoadProgMemPageLow));
-            // printf("ProgLow: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-
-            pc = atmegaLoadProgMemPageHigh;
-            pc[2] = ((unsigned char*)&uiPageWords)[0];
-            pc[3] = updFileBuf[uiPageWords*2+1];
-            // printf("%x %x %x %x\n", pc[0], pc[1], pc[2], pc[3]);
-            SPI_SendRecv(lk_fd, atmegaLoadProgMemPageHigh, buf, ARRAY_SIZE(atmegaLoadProgMemPageHigh));
-            // printf("ProgHigh: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-        }
-
-        pc = atmegaWriteProgMemPage;
-        atmegaWriteProgMemPage[1] = (ucPageAddress >> 1) & 0x7F;
-        atmegaWriteProgMemPage[2] = ((ucPageAddress & 0x01) << 7) & 0x80;
-        // printf("%x %x %x %x\n", pc[0], pc[1], pc[2], pc[3]);
-        SPI_SendRecv(lk_fd, atmegaWriteProgMemPage, buf, ARRAY_SIZE(atmegaWriteProgMemPage));
-        // printf("atmegaWriteProgMemPage: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-        usleep(4500);
-
-        for(uiPageWords=0; uiPageWords<bytesRead/2; uiPageWords++)
-        {
-            pc = atmegaReadProgMemPageLow;
-            pc[1] = atmegaWriteProgMemPage[1];
-            pc[2] = atmegaWriteProgMemPage[2];
-            pc[2] |= ((unsigned char*)&uiPageWords)[0];
-            SPI_SendRecv(lk_fd, atmegaReadProgMemPageLow, buf, ARRAY_SIZE(atmegaReadProgMemPageLow));
-            // printf("ReadLow: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-            if (buf[3] != updFileBuf[uiPageWords*2])
+            for (uiPageWords=0; uiPageWords<bytesRead/2; uiPageWords++)
             {
-                PrintfErrAndExit("    Error at %u: %x instead %x\n", uiPageWords, buf[3], updFileBuf[uiPageWords*2]);
+                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_LOW, sndBuf);
+                {
+                    sndBuf[BYTE3] = ((unsigned char*)&uiPageWords)[0];
+                    sndBuf[BYTE4] = updFileBuf[uiPageWords*2];
+                    if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                        PrintfErrAndExit("Error load low!\n");
+                    if (lk_verbose >= 1)
+                        printf("WrLow:  %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                }
+
+                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_HIGH, sndBuf);
+                {
+                    sndBuf[BYTE3] = ((unsigned char*)&uiPageWords)[0];
+                    sndBuf[BYTE4] = updFileBuf[uiPageWords*2+1];
+                    if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                        PrintfErrAndExit("Error load high!\n");
+                    if (lk_verbose >= 1)
+                        printf("WrHigh: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                }
             }
 
-            pc = atmegaReadProgMemPageHigh;
-            pc[1] = atmegaWriteProgMemPage[1];
-            pc[2] = atmegaWriteProgMemPage[2];
-            pc[2] |= ((unsigned char*)&uiPageWords)[0];
-            SPI_SendRecv(lk_fd, atmegaReadProgMemPageHigh, buf, ARRAY_SIZE(atmegaReadProgMemPageHigh));
-            // printf("ReadHigh: %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3]);
-            if (buf[3] != updFileBuf[uiPageWords*2+1])
+            Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_WRITE_PROG_MEM_PAGE, sndBuf);
             {
-                PrintfErrAndExit("    Error at %u: %x instead %x\n", uiPageWords, buf[3], updFileBuf[uiPageWords*2+1]);
+                sndBuf[BYTE2] = (ucPageAddress >> 1) & 0x7F;
+                sndBuf[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
+                if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                    PrintfErrAndExit("Error write page!\n");
+                if (lk_verbose >= 1)
+                    printf("WrPage: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+            }
+            usleep(4500);
+        }
+
+        if (lk_isVerify || lk_isVerifyOnly)
+        {
+            for(uiPageWords=0; uiPageWords<bytesRead/2; uiPageWords++)
+            {
+                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_READ_CMD_LOW, sndBuf);
+                {
+                    sndBuf[BYTE2] = (ucPageAddress >> 1) & 0x7F;
+                    sndBuf[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
+                    sndBuf[BYTE3] |= ((unsigned char*)&uiPageWords)[0];
+                    if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                        PrintfErrAndExit("Error read low!\n");
+                    if (lk_verbose >= 1)
+                        printf("RdLow:  %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                    if (rcvBuf[3] != updFileBuf[uiPageWords*2])
+                    {
+                        PrintfErrAndExit("    Error at %u: %x instead %x\n", uiPageWords, rcvBuf[3], updFileBuf[uiPageWords*2]);
+                    }
+                }
+
+                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_READ_CMD_HIGH, sndBuf);
+                {
+                    sndBuf[BYTE2] = (ucPageAddress >> 1) & 0x7F;
+                    sndBuf[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
+                    sndBuf[BYTE3] |= ((unsigned char*)&uiPageWords)[0];
+                    if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                        PrintfErrAndExit("Error read high!\n");
+                    if (lk_verbose >= 1)
+                        printf("RdHigh: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                    if (rcvBuf[3] != updFileBuf[uiPageWords*2+1])
+                    {
+                        PrintfErrAndExit("    Error at %u: %x instead %x\n", uiPageWords, rcvBuf[3], updFileBuf[uiPageWords*2+1]);
+                    }
+                }
             }
         }
 
         ucPageAddress++;
 
     } while (bytesRead > 0);
-//    } while (0);
 
     fclose(fUpdFile);
 

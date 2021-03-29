@@ -87,6 +87,8 @@ static const TYAtmelDevice *gObjListAtmelDev[] =
 // ATMEL - SPI Serial Programming Instruction Set Definition
 static TYAtmelInstruction gATMEGA32Instruction[] =
 {
+  { 0xAC, 0x53, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
+
   { 0xAC, 0xA0, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
   { 0xAC, 0xA8, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT_HIGH
   {0,0,0,0}, // ATMEL_WRITE_FUSEBIT_EXTD , NOT SUPPORTED FOR DEVICE
@@ -97,11 +99,16 @@ static TYAtmelInstruction gATMEGA32Instruction[] =
   { 0x40, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_LOW
   { 0x48, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_HIGH
   { 0x4C, 0x00, 0x00, 0x00 },  // ATMEL_WRITE_PROG_MEM_PAGE
+
+  { 0x20, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_LOW
+  { 0x28, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_HIGH
 };
 
 // ATMEL - SPI Serial Programming Instruction Set Definition
 static TYAtmelInstruction gATMEGA64Instruction[] =
 {
+  { 0xAC, 0x53, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
+
   { 0xAC, 0xA0, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
   { 0xAC, 0xA8, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT_HIGH
   { 0xAC, 0xA4, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT_EXTD
@@ -112,6 +119,9 @@ static TYAtmelInstruction gATMEGA64Instruction[] =
   { 0x40, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_LOW
   { 0x48, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_HIGH
   { 0x4C, 0x00, 0x00, 0x00 },  // ATMEL_WRITE_PROG_MEM_PAGE
+
+  { 0x20, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_LOW
+  { 0x28, 0x00, 0x00, 0x00 },  // ATMEL_LOAD_CMD_HIGH
 };
 
 /*. ENDLOCAL ==============================================================*/

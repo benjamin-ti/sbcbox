@@ -134,6 +134,7 @@ typedef struct atmel_instruction
 // SPI Serial Programming Instruction Set ( ATMEGA32, ATMEGA64 }
 enum atmel_instruction_set
 {
+    ATMEL_PROG_ENABLE,
     ATMEL_WRITE_FUSEBYTE,
     ATMEL_WRITE_FUSEBYTE_HIGH,
     ATMEL_WRITE_FUSEBYTE_EXTD,
@@ -144,6 +145,8 @@ enum atmel_instruction_set
     ATMEL_LOAD_CMD_LOW,
     ATMEL_LOAD_CMD_HIGH,
     ATMEL_WRITE_PROG_MEM_PAGE,
+    ATMEL_READ_CMD_LOW,
+    ATMEL_READ_CMD_HIGH,
     ATMEL_NUM_INSTRUCTION
 };
 

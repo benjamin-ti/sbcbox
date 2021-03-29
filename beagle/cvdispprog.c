@@ -58,7 +58,8 @@ static void WriteValue2File(char* pcFile, char* pcValue);
 
 static const char* lk_spidev = "/dev/spidev1.1";
 static const AtmelID lk_idATMEL = ATMEGA64;
-static const uint32_t lk_speed = 500000;
+#define ATMEGA_BYTES_PER_PAGE 128*2
+static const uint32_t lk_speed = 750000;
 
 /*------------------------- modulglobale Variable -------------------------*/
 
@@ -69,6 +70,8 @@ static int lk_verbose;
 static BOOL   lk_isTestOnly;
 static BOOL   lk_isVerify;
 static BOOL   lk_isVerifyOnly;
+
+static char lk_buf4CompletePageWithInstructions[ATMEGA_BYTES_PER_PAGE*ATMEGA_SIZE_INSTRUCTION+ATMEGA_SIZE_INSTRUCTION];
 
 /*. ENDLOCAL ==============================================================*/
 
@@ -264,7 +267,8 @@ static VC_BOOL SPI_SendRecv(int fd, uint8_t* tx, uint8_t* rx, size_t len)
 {
         int ret;
         int out_fd;
-        memset(rx, 0, len);
+        if (rx != NULL)
+            memset(rx, 0, len);
         struct spi_ioc_transfer tr = {
                 .tx_buf = (unsigned long)tx,
                 .rx_buf = (unsigned long)rx,
@@ -308,7 +312,7 @@ static void ResetAtmega(void)
     switch (lk_board)
     {
         case MBOARD_CV:
-            WriteValue2File("/sys/devices/platform/ocp/ocp:ECAP0_PWM_pinmux/state", "gpio");
+            WriteValue2File("/sys/devices/platform/ocp/ocp:ECAP0_PWM_pinmux/state", "default");
             GPIOWrite(7, 0);  // SCK Singal -> 0
             GPIOWrite(43, 0); // Clr Reset
             usleep(1000);
@@ -516,7 +520,7 @@ int main(int argc, char *argv[])
     char rcvBuf[ATMEGA_SIZE_INSTRUCTION];
     FILE* fUpdFile;
     char* pcUpdFile;
-    char updFileBuf[130*2];
+    char updFileBuf[ATMEGA_BYTES_PER_PAGE+20];
     uint32_t mode = 0;
     int bytesRead;
     TYAtmelDevice* pObjAtmelDev;
@@ -679,49 +683,93 @@ int main(int argc, char *argv[])
     }
 
     ucPageAddress = 0;
-    i = 0;
 
     do
     {
-        bytesRead = fread(updFileBuf, 1, 128*2, fUpdFile);
+        bytesRead = fread(updFileBuf, 1, ATMEGA_BYTES_PER_PAGE, fUpdFile);
         if (bytesRead <= 0)
             break;
 
         if (!lk_isVerifyOnly)
         {
-            for (uiPageWords=0; uiPageWords<bytesRead/2; uiPageWords++)
+            if (lk_verbose >= 1)
             {
-                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_LOW, sndBuf);
+                for (uiPageWords=0; uiPageWords<bytesRead/2; uiPageWords++)
                 {
-                    sndBuf[BYTE3] = ((unsigned char*)&uiPageWords)[0];
-                    sndBuf[BYTE4] = updFileBuf[uiPageWords*2];
-                    if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
-                        PrintfErrAndExit("Error load low!\n");
-                    if (lk_verbose >= 1)
-                        printf("WrLow:  %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                    Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_LOW, sndBuf);
+                    {
+                        sndBuf[BYTE3] = ((unsigned char*)&uiPageWords)[0];
+                        sndBuf[BYTE4] = updFileBuf[uiPageWords*2];
+                        if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                            PrintfErrAndExit("Error load low!\n");
+                        if (lk_verbose >= 1)
+                            printf("WrLow:  %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                    }
+
+                    Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_HIGH, sndBuf);
+                    {
+                        sndBuf[BYTE3] = ((unsigned char*)&uiPageWords)[0];
+                        sndBuf[BYTE4] = updFileBuf[uiPageWords*2+1];
+                        if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
+                            PrintfErrAndExit("Error load high!\n");
+                        if (lk_verbose >= 1)
+                            printf("WrHigh: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                    }
                 }
 
-                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_HIGH, sndBuf);
+                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_WRITE_PROG_MEM_PAGE, sndBuf);
                 {
-                    sndBuf[BYTE3] = ((unsigned char*)&uiPageWords)[0];
-                    sndBuf[BYTE4] = updFileBuf[uiPageWords*2+1];
+                    sndBuf[BYTE2] = (ucPageAddress >> 1) & 0x7F;
+                    sndBuf[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
                     if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
-                        PrintfErrAndExit("Error load high!\n");
+                        PrintfErrAndExit("Error write page!\n");
                     if (lk_verbose >= 1)
-                        printf("WrHigh: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                        printf("WrPage: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
                 }
+                VCHAL_msDelay(5);
             }
-
-            Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_WRITE_PROG_MEM_PAGE, sndBuf);
+            else
             {
-                sndBuf[BYTE2] = (ucPageAddress >> 1) & 0x7F;
-                sndBuf[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
-                if (!SPI_SendRecv(lk_fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
-                    PrintfErrAndExit("Error write page!\n");
-                if (lk_verbose >= 1)
-                    printf("WrPage: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                VC_BOOL isModulo = VC_FALSE;
+                char* pc = lk_buf4CompletePageWithInstructions;
+                unsigned int uiPageWordsMax = bytesRead/2;
+                if (bytesRead%2)
+                {
+                    uiPageWordsMax += 1;
+                    isModulo = VC_TRUE;
+                }
+
+                for (uiPageWords=0; uiPageWords<uiPageWordsMax; uiPageWords++)
+                {
+                    Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_LOW, pc);
+                    {
+                        pc[BYTE3] = ((unsigned char*)&uiPageWords)[0];
+                        pc[BYTE4] = updFileBuf[uiPageWords*2];
+                        pc += 4;
+                    }
+                    if (uiPageWords<uiPageWordsMax-1 || !isModulo) {
+                        Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_LOAD_CMD_HIGH, pc);
+                        {
+                            pc[BYTE3] = ((unsigned char*)&uiPageWords)[0];
+                            pc[BYTE4] = updFileBuf[uiPageWords*2+1];
+                            pc += 4;
+                        }
+                    }
+                }
+
+                Atmega_GetInstruct(pObjAtmelDev->deviceType, ATMEL_WRITE_PROG_MEM_PAGE, pc);
+                {
+                    pc[BYTE2] = (ucPageAddress >> 1) & 0x7F;
+                    pc[BYTE3] = ((ucPageAddress & 0x01) << 7) & 0x80;
+                    if (!SPI_SendRecv(lk_fd, lk_buf4CompletePageWithInstructions, NULL,
+                            bytesRead*ATMEGA_SIZE_INSTRUCTION+ATMEGA_SIZE_INSTRUCTION))
+
+                        PrintfErrAndExit("Error write page!\n");
+                    if (lk_verbose >= 1)
+                        printf("WrPage: %x %x %x %x\n", rcvBuf[0], rcvBuf[1], rcvBuf[2], rcvBuf[3]);
+                }
+                VCHAL_msDelay(5);
             }
-            usleep(4500);
         }
 
         if (lk_isVerify || lk_isVerifyOnly)

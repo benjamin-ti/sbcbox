@@ -4,6 +4,10 @@ CC=/home/user/workspaceCpp/btoctavobr_out/host/bin/arm-linux-gcc -g
 
 all: mkO O/gpioHardcore O/mygpio O/cvdispprog
 
+upload:
+	scp /mnt/user/p/Firmware/Komponenten/SH3_Atmel/bin/GUILCD.V2_0_2.bin root@10.102.1.114:~
+	scp /mnt/user/p/Firmware/Komponenten/SH3_Atmel/bin/GUILCD.V2_0_0.bin root@10.102.1.114:~ 
+
 O/gpioHardcore: O/gpioHardcore.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 	

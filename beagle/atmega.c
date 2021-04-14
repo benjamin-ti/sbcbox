@@ -87,7 +87,7 @@ static const TYAtmelDevice *gObjListAtmelDev[] =
 // ATMEL - SPI Serial Programming Instruction Set Definition
 static TYAtmelInstruction gATMEGA32Instruction[] =
 {
-  { 0xAC, 0x53, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
+  { 0xAC, 0x53, 0x00, 0x00 },  // ATMEL_PROG_ENABLE
 
   { 0xAC, 0xA0, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
   { 0xAC, 0xA8, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT_HIGH
@@ -107,7 +107,7 @@ static TYAtmelInstruction gATMEGA32Instruction[] =
 // ATMEL - SPI Serial Programming Instruction Set Definition
 static TYAtmelInstruction gATMEGA64Instruction[] =
 {
-  { 0xAC, 0x53, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
+  { 0xAC, 0x53, 0x00, 0x00 },  // ATMEL_PROG_ENABLE
 
   { 0xAC, 0xA0, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT
   { 0xAC, 0xA8, 0x00, 0x00 },  // ATMEL_WRITE_FUSEBIT_HIGH

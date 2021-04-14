@@ -1,5 +1,5 @@
 # CC=arm-linux-gnueabihf-gcc -g 
-CC=/home/user/workspaceCpp/btoctavobr_out/host/bin/arm-linux-gcc -g
+CC=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
 #CC=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
 
 all: mkO O/gpioHardcore O/mygpio O/cvdispprog

@@ -37,8 +37,14 @@
 #define VERSION$ "1.0"
 
 #define SpiDev_LogErrAndReturn(fmt, ...)  PrintfErrorAndExitReal(__LINE__, fmt, ##__VA_ARGS__)
+
 #define SpiDev_Atmega_GetInstruct(IDATMEL, IDINSTRUCT, PINSTRUCT) \
-            SpiDev_Atmega_GetInstructReal(IDATMEL, IDINSTRUCT, PINSTRUCT, __LINE__)
+    if (RET_OK != Atmega_GetInstruction(IDATMEL, IDINSTRUCT, PINSTRUCT)) \
+    {                                                                    \
+        PrintfErrorAndExitReal(__LINE__, "Get Instruction error!\n"); \
+        return VC_FALSE;                                                          \
+    }
+
 #define CV_LOG_A(ARGS) \
             if (lk_verbose >= 1) \
                 printf ARGS
@@ -150,6 +156,18 @@ static void CleanAndExit(int ret)
 }
 
 /*=========================================================================*/
+static int EndsWith(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+        return 0;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix >  lenstr)
+        return 0;
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
+/*=========================================================================*/
 // returns the index of the first argument that is not an option; i.e.
 // does not start with a dash or a slash
 static int HandleOptions(int argc, char *argv[])
@@ -157,6 +175,12 @@ static int HandleOptions(int argc, char *argv[])
     int i,j,firstnonoption=0;
 
     for (i=1; i< argc;i++) {
+
+        if ( EndsWith(argv[i],".bin") || EndsWith(argv[i],".atd") ) {
+            firstnonoption = i;
+            break;
+        }
+
         if (argv[i][0] == '/' || argv[i][0] == '-') {
             switch (argv[i][1]) {
                 // An argument -? means help is requested
@@ -352,7 +376,7 @@ static VC_BOOL SpiDev_WriteAtmegaFuses(int fd, TYAtmelDevice *pObjAtmelDev)
 
     if (NULL != pObjAtmelDev)
     {
-        if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE, sndBuf))
         {
 #ifdef LINUX_SUPPORT
             sndBuf[BYTE4] = pObjAtmelDev->fuseByteLow;
@@ -368,7 +392,7 @@ static VC_BOOL SpiDev_WriteAtmegaFuses(int fd, TYAtmelDevice *pObjAtmelDev)
         else
             bRet = VC_FALSE;
 
-        if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE_HIGH, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE_HIGH, sndBuf))
         {
 #ifdef LINUX_SUPPORT
             sndBuf[BYTE4] = pObjAtmelDev->fuseByteHigh;
@@ -386,7 +410,7 @@ static VC_BOOL SpiDev_WriteAtmegaFuses(int fd, TYAtmelDevice *pObjAtmelDev)
 
         if (ATMEGA64 == pObjAtmelDev->deviceType)
         {
-            if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE_EXTD, sndBuf))
+            if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_WRITE_FUSEBYTE_EXTD, sndBuf))
             {
 #ifdef LINUX_SUPPORT
                 sndBuf[BYTE4] = pObjAtmelDev->fuseByteExtd;
@@ -418,7 +442,7 @@ static VC_BOOL SpiDev_ReadAndCheckAtmegaFuses(int fd, TYAtmelDevice *pObjAtmelDe
 
     if (NULL != pObjAtmelDev)
     {
-        if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE, sndBuf))
         {
             CV_LOG_A_MORE(("RdFuseBitsLowSnd: %x %x %x %x\n", sndBuf[0], sndBuf[1], sndBuf[2], sndBuf[3]));
             if (!SpiDev_SendRecv(fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
@@ -432,7 +456,7 @@ static VC_BOOL SpiDev_ReadAndCheckAtmegaFuses(int fd, TYAtmelDevice *pObjAtmelDe
         else
             bRet = VC_FALSE;
 
-        if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE_HIGH, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE_HIGH, sndBuf))
         {
             CV_LOG_A_MORE(("RdFuseBitsHighSnd: %x %x %x %x\n", sndBuf[0], sndBuf[1], sndBuf[2], sndBuf[3]));
             if (!SpiDev_SendRecv(fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
@@ -448,7 +472,7 @@ static VC_BOOL SpiDev_ReadAndCheckAtmegaFuses(int fd, TYAtmelDevice *pObjAtmelDe
 
         if (ATMEGA64 == pObjAtmelDev->deviceType)
         {
-            if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE_EXTD, sndBuf))
+            if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, ATMEL_READ_FUSEBYTE_EXTD, sndBuf))
             {
                 CV_LOG_A_MORE(("RdFuseBitsExtSnd: %x %x %x %x\n", sndBuf[0], sndBuf[1], sndBuf[2], sndBuf[3]));
                 if (!SpiDev_SendRecv(fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
@@ -477,7 +501,7 @@ static void SPI_DoReadCmd(int fd, TYAtmelDevice *pObjAtmelDev, unsigned char idI
 
     if (NULL != pObjAtmelDev)
     {
-        if (RET_OK == SpiDev_Atmega_GetInstruction(pObjAtmelDev->deviceType, idInstruction, sndBuf))
+        if (RET_OK == Atmega_GetInstruction(pObjAtmelDev->deviceType, idInstruction, sndBuf))
         {
             if (!SpiDev_SendRecv(fd, sndBuf, rcvBuf, ATMEGA_SIZE_INSTRUCTION))
                 SpiDev_LogErrAndReturn("Error writing prog enable!\n");
@@ -493,27 +517,6 @@ static void SPI_DoReadCmd(int fd, TYAtmelDevice *pObjAtmelDev, unsigned char idI
     }
     else
         SpiDev_LogErrAndReturn("NULL-pointer error!\n");
-}
-
-/*=========================================================================*/
-static void SpiDev_Atmega_GetInstructReal(AtmelID idATMEL, unsigned char idInstruction,
-                                   unsigned char *pInstruction, unsigned int uiLine)
-{
-    if (RET_OK != SpiDev_Atmega_GetInstruction(idATMEL, idInstruction, pInstruction))
-    {
-        PrintfErrorAndExitReal(uiLine, "Get Instruction error!\n");
-    }
-}
-
-static int EndsWith(const char *str, const char *suffix)
-{
-    if (!str || !suffix)
-        return 0;
-    size_t lenstr = strlen(str);
-    size_t lensuffix = strlen(suffix);
-    if (lensuffix >  lenstr)
-        return 0;
-    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
 }
 
 /*=========================================================================*/
@@ -537,6 +540,7 @@ int main(int argc, char *argv[])
     if (argc == 1)
     {
         // No arguments
+        printf("wrong Args\n");
         Usage(argv[0]);
         CleanAndExit(0);
     }

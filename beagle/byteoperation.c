@@ -8,8 +8,9 @@
 
 #include "vcplatform.h" // INSERTED BY checkIncludes.sh
 
+#include <string.h>
 #include "byteoperation.h"
-//#include <VCStdLib/VCEndian/VCEndian.h>
+#include "VCEndian.h"
 
 /*. ENDIMPORT =============================================================*/
 

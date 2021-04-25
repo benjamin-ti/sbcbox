@@ -2,8 +2,8 @@ CC=arm-linux-gnueabihf-gcc -g --sysroot /opt/pi/sysroot
 
 all: mkO O/robot
 
-O/robot: O/main.o O/wrgpio.o O/vcosal.o O/sllist.o O/curve.o O/MotNTOSSync.o O/MotNTLxS.o
-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -lgpiod -lm -lpthread -lrt -o $@
+O/robot: O/main.o O/wrgpio.o O/vcosal.o O/sllist.o O/curve.o O/MotNTOSSync.o O/MotNTLxS.o O/MotNT.o
+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -lwiringPi -lcrypt -lgpiod -lm -lpthread -lrt -o $@
 
 mkO:
 	mkdir -p O

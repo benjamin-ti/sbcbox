@@ -16,9 +16,14 @@
 
 #define ms *1000
 
-static const unsigned int lk_gpioNumStep = 4;
-static const unsigned int lk_gpioNumCur = 3;
-static const unsigned int lk_gpioNumDir = 14;
+// M1
+// static const unsigned int lk_gpioNumStep = 14;
+// static const unsigned int lk_gpioNumCur = 2;
+// static const unsigned int lk_gpioNumDir = 4;
+// M2
+static const unsigned int lk_gpioNumStep = 18;
+static const unsigned int lk_gpioNumCur = 15;
+static const unsigned int lk_gpioNumDir = 17;
 
 static MOTNTLXS lk_sMotNT1;
 static MOTNT*   lk_psMotNT1 = (MOTNT*)&lk_sMotNT1;
@@ -408,7 +413,8 @@ static void PWM2TimerValueSet(unsigned int uiTimerValue_us)
 /*=========================================================================*/
 int main(void)
 {
-    unsigned int gpioNum = 18;
+//    unsigned int gpioNum = 18;
+    unsigned int gpioMotorReset = 3;
     int iRet;
     static struct sigevent sSigev2;
     static struct sigevent sSigev3;
@@ -426,10 +432,12 @@ int main(void)
     sigprocmask (SIG_BLOCK, &alarm_sig, NULL);
 
     wrgpio_init("robot");
-    wrgpio_set_pinmode2outp(gpioNum);
-/*
+//    wrgpio_set_pinmode2outp(gpioNum);
+    wrgpio_set_pinmode2outp(gpioMotorReset);
+
     if (wiringPiSetup() == -1)
         return 1;
+/*
     pinMode(9, OUTPUT);
     softPwmCreate(9, 1, 100);
     softPwmWrite(9, 50);
@@ -515,23 +523,43 @@ int main(void)
     }
 */
 
+    wrgpio_set(gpioMotorReset);
+
     MotNT1_Init();
 
-    PWMTimerValueSet(100*1000);
+    PWMTimerValueSet(1*1000);
 //    PWM2TimerValueSet(500*1000);
 
-//    while (1)
+/*
+    while (1)
     {
         wrgpio_set(gpioNum);
         usleep(500*1000);
         wrgpio_del(gpioNum);
         usleep(500*1000);
     }
+*/
 
-    MotNT_Start(lk_psMotNT1, 400, 0, MOTNT_DIR_FW);
+    // PWM-Frequenz in Hz = 19.2 MHz / Clock / Range
+    pinMode(1, PWM_OUTPUT);
+    pwmSetMode(PWM_MODE_MS);
+/*
+    pwmSetClock(1920); // 1920: PWM-Takt beträgt 19.2 MHz / 1920 = 10 KHz
+    pwmSetRange(200); // PWM-Range (PWMR): Die 10 kHz werden durch 200 Einheiten geteilt, d.h. die PWM-Frequenz beträgt10 KHz / 200 = 50 Hz
+    pwmWrite(1, 100); // Das Ausgangssignal wird für 100 Einheiten auf High geschaltet. Bei einer PWM-Range (PWMR) von 200 Einheiten ergibt das einen Tastgrad von 50%
+*/
+    pwmSetClock(1920);
+    pwmSetRange(10);
+    pwmWrite(1, 5);
+
+//    MotNT_Start(lk_psMotNT1, 1200, 0, MOTNT_DIR_FW);
     usleep(5000*1000);
-    MotNT_Stop(lk_psMotNT1);
+//    MotNT_Stop(lk_psMotNT1);
     usleep(1000*1000);
+
+    pinMode(1, OUTPUT);
+
+    wrgpio_del(gpioMotorReset);
 
     wrgpio_close();
 

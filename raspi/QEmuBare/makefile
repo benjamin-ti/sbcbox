@@ -7,7 +7,7 @@ O/qemu_test.bin: O/qemu_test.elf
 	arm-none-eabi-objcopy -O binary $< $@
 
 O/qemu_test.elf: O/startup.o O/main.o
-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T test.ld -o $@
+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
 
 mkO:
 	mkdir -p O

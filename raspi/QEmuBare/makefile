@@ -1,12 +1,12 @@
 # CC=arm-linux-gnueabihf-gcc -g
 CC=arm-none-eabi-gcc -g
 
-all: mkO O/qemu_test.bin
+all: mkO O/qemubare.bin
 
-O/qemu_test.bin: O/qemu_test.elf 
+O/qemubare.bin: O/qemubare.elf 
 	arm-none-eabi-objcopy -O binary $< $@
 
-O/qemu_test.elf: O/startup.o O/main.o
+O/qemubare.elf: O/startup.o O/main.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
 
 mkO:

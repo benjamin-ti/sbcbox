@@ -1,0 +1,11 @@
+export CROSS_COMPILE=arm-none-eabi-
+export ARCH=arm
+make qemu_arm_defconfig
+make
+
+qemu-system-arm -machine virt -bios u-boot.bin
+
+- To add an Intel E1000 network adapter, pass e.g.:
+    -netdev user,id=net0 -device e1000,netdev=net0
+- To add an EHCI-compliant USB host controller, pass e.g.:
+    -device usb-ehci,id=ehci

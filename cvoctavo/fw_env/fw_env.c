@@ -935,7 +935,7 @@ static int flash_read_buf(int dev, int fd, void *buf, size_t count,
 		}
 
 		if (rc) {	/* block is bad */
-	                processed += readlen;
+		        blockstart += blocklen;
 			continue;
 		}
 

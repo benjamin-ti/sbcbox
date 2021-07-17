@@ -36,8 +36,8 @@ ssh-keygen -f "/home/$USER/.ssh/known_hosts" -R "$PI_IP_ADDR"
 ssh-copy-id pi@"$PI_IP_ADDR"
 
 sudo mkdir -p /opt
-sudo mkdir -p /opt/raspi
-cd /opt/raspi
+sudo mkdir -p /opt/pi
+cd /opt/pi
 sudo mkdir -p sysroot
 cd sysroot
 

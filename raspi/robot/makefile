@@ -1,4 +1,4 @@
-CC=arm-linux-gnueabihf-gcc -g --sysroot /opt/raspi/sysroot
+CC=arm-linux-gnueabihf-gcc -g --sysroot /opt/pi/sysroot
 
 all: mkO O/robot
 

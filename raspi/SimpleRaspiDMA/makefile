@@ -1,4 +1,4 @@
-CC=gcc
+CC=arm-linux-gnueabihf-gcc -g --sysroot /opt/pi/sysroot
 CFLAGS=-g $(DEFINES)
 
 all: help
@@ -6,11 +6,13 @@ rpi1: DEFINES:=$(DEFINES) -DRPI_V1
 rpi2: DEFINES:=$(DEFINES) -DRPI_V2
 rpi3: DEFINES:=$(DEFINES) -DRPI_V3
 rpi1 rpi2 rpi3: dma-example dma-gpio
+	scp dma-example pi@192.168.0.81:~
+	scp dma-gpio pi@192.168.0.81:~
 
 dma-example: dma-example.c
 	$(CC) $(CFLAGS) -o dma-example dma-example.c
 dma-gpio: dma-gpio.c
-	$(CC) $(CFLAGS) -O2 -std=gnu99 -o dma-gpio dma-gpio.c -lrt
+	$(CC) $(CFLAGS) -O2 -std=gnu99 -o dma-gpio dma-gpio.c -lpthread -lrt
 	
 clean:
 	rm -rf dma-example dma-gpio

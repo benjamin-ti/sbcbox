@@ -1,0 +1,16 @@
+Damit der BeagleBone Balck U-Boot beim CV-Octavo-Board etwas auf der seriellen 
+Schnittstelle ausgibt muss die Boarderkennung funktionieren.
+Der Beagle hat auf dem I2C0 einen EEprom mit der BoardID. Das hat das 
+CV-Octavo-Board natürlich nicht. Weil es aber in vielem kompatibel zum 
+BeagelBone Black ist sollte es sich als solches ausgeben. Um das zu erreichen 
+kann man in board/ti/am335x/board.h die Funktion board_is_bone_lt verändern:
+
+static inline int board_is_bone_lt(void)
+{
+// 	return board_ti_is("A335BNLT");
+	return 1;
+}
+
+Per default wird das Pinmux über board/ti/am335x/mux.c gemacht. Ob man auch 
+die zahlreich vorhandenen Device-Tree-Files dazu benutzen kann, ahb ich noch
+nicht herausgefunden.

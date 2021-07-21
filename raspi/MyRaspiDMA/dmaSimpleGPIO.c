@@ -11,9 +11,9 @@
 #define PAGE_SIZE 4096 //mmap maps pages of memory, so we must give it multiples of this size
 
 #define DMA_BASE      0x3F007000
-#define GPIO_BASE_BUS 0x7E200000 //this is the physical bus address of the GPIO 
-                                 //module. This is only used when other 
-                                 //peripherals directly connected to the bus 
+#define GPIO_BASE_BUS 0x7E200000 //this is the physical bus address of the GPIO
+                                 //module. This is only used when other
+                                 //peripherals directly connected to the bus
                                  //(like DMA) need to read/write the GPIOs
 
 //-------- Relative offsets for DMA registers
@@ -137,7 +137,7 @@ void* makeLockedMem(size_t size) {
         NULL,   //let kernel place memory where it wants
         size,   //length
         PROT_WRITE | PROT_READ, //ask for read and write permissions to memory
-        MAP_SHARED | 
+        MAP_SHARED |
         MAP_ANONYMOUS | //no underlying file; initialize to 0
         MAP_NORESERVE | //don't reserve swap space
         MAP_LOCKED, //lock into *virtual* ram. Physical ram may still change!
@@ -163,13 +163,13 @@ uintptr_t virtToPhys(void* virt, int pagemapfd) {
     uintptr_t pgNum = (uintptr_t)(virt)/PAGE_SIZE;
     int byteOffsetFromPage = (uintptr_t)(virt)%PAGE_SIZE;
     uint64_t physPage;
-    // /proc/self/pagemap is a uint64_t array where the index represents 
-    //the virtual page number and the value at that index represents the 
+    // /proc/self/pagemap is a uint64_t array where the index represents
+    //the virtual page number and the value at that index represents the
     //physical page number.
-    //So if virtual address is 0x1000000, read the value at *array* 
-    //index 0x1000000/PAGE_SIZE and multiply that by PAGE_SIZE to get the 
+    //So if virtual address is 0x1000000, read the value at *array*
+    //index 0x1000000/PAGE_SIZE and multiply that by PAGE_SIZE to get the
     //physical address.
-    //because files are bytestreams, one must explicitly multiply each 
+    //because files are bytestreams, one must explicitly multiply each
     //byte index by 8 to treat it as a uint64_t array.
     int err = lseek(pagemapfd, pgNum*8, SEEK_SET);
     if (err != pgNum*8) {
@@ -185,43 +185,43 @@ uintptr_t virtToPhys(void* virt, int pagemapfd) {
 }
 
 uintptr_t virtToUncachedPhys(void *virt, int pagemapfd) {
-	//bus address of the ram is 0x40000000. With this binary-or, writes 
-	//to the returned address will bypass the CPU (L1) cache, but not 
-	//the L2 cache. 0xc0000000 should be the base address if L2 must 
-	//also be bypassed. However, the DMA engine is aware of L2 cache 
-	//- just not the L1 cache (source: 
+	//bus address of the ram is 0x40000000. With this binary-or, writes
+	//to the returned address will bypass the CPU (L1) cache, but not
+	//the L2 cache. 0xc0000000 should be the base address if L2 must
+	//also be bypassed. However, the DMA engine is aware of L2 cache
+	//- just not the L1 cache (source:
 	//http://en.wikibooks.org/wiki/Aros/Platforms/Arm_Raspberry_Pi_support#Framebuffer )
-    return virtToPhys(virt, pagemapfd) | 0x40000000; 
+    return virtToPhys(virt, pagemapfd) | 0x40000000;
 }
 
 void* makeUncachedMemView(void* virtaddr, size_t bytes, int memfd, int pagemapfd) {
     //by default, writing to any virtual address will go through the CPU cache.
-    //this function will return a pointer that behaves the same as virtaddr, but 
-    //bypasses the CPU L1 cache (note that because of this, the returned pointer 
-    //and original pointer should not be used in conjunction, else cache-related 
+    //this function will return a pointer that behaves the same as virtaddr, but
+    //bypasses the CPU L1 cache (note that because of this, the returned pointer
+    //and original pointer should not be used in conjunction, else cache-related
     //inconsistencies will arise)
-    //Note: The original memory should not be unmapped during the lifetime of 
-    //the uncached version, as then the OS won't know that our process still owns 
+    //Note: The original memory should not be unmapped during the lifetime of
+    //the uncached version, as then the OS won't know that our process still owns
     //the physical memory.
     bytes = ceilToPage(bytes);
-    //first, just allocate enough *virtual* memory for the operation. This is done 
+    //first, just allocate enough *virtual* memory for the operation. This is done
     //so that we can do the later mapping to a contiguous range of virtual memory:
     void *mem = mmap(
         NULL,   //let kernel place memory where it wants
         bytes,   //length
         PROT_WRITE | PROT_READ, //ask for read and write permissions to memory
-        MAP_SHARED | 
+        MAP_SHARED |
         MAP_ANONYMOUS | //no underlying file; initialize to 0
         MAP_NORESERVE | //don't reserve swap space
         MAP_LOCKED, //lock into *virtual* ram. Physical ram may still change!
         -1,	// File descriptor
     0); //no offset into file (file doesn't exist).
-    //now, free the virtual memory and immediately remap it to the physical 
+    //now, free the virtual memory and immediately remap it to the physical
     //addresses used in virtaddr
     munmap(mem, bytes); //Might not be necessary; MAP_FIXED indicates it can map an already-used page
     for (int offset=0; offset<bytes; offset += PAGE_SIZE) {
-        void *mappedPage = mmap(mem+offset, PAGE_SIZE, PROT_WRITE|PROT_READ, 
-                                MAP_SHARED|MAP_FIXED|MAP_NORESERVE|MAP_LOCKED, 
+        void *mappedPage = mmap(mem+offset, PAGE_SIZE, PROT_WRITE|PROT_READ,
+                                MAP_SHARED|MAP_FIXED|MAP_NORESERVE|MAP_LOCKED,
                                 memfd, virtToUncachedPhys(virtaddr+offset, pagemapfd));
         if (mappedPage != mem+offset) { //We need these mappings to be contiguous over virtual memory (in order to replicate the virtaddr array), so we must ensure that the address we requested from mmap was actually used.
             printf("Failed to create an uncached view of memory at addr %p+0x%08x\n", virtaddr, offset);
@@ -238,7 +238,7 @@ void freeUncachedMemView(void* mem, size_t size) {
     munmap(mem, size);
 }
 
-//map a physical address into our virtual address space. memfd is the 
+//map a physical address into our virtual address space. memfd is the
 //file descriptor for /dev/mem
 volatile uint32_t* mapPeripheral(int memfd, int addr) {
     ///dev/mem behaves as a file. We need to map that file into memory:
@@ -248,7 +248,7 @@ volatile uint32_t* mapPeripheral(int memfd, int addr) {
     //MAP_SHARED means updates to the mapped memory should be written back to the file & shared with other processes
     //memfd = /dev/mem file descriptor
     //addr = offset in file to map
-    void *mapped = mmap(NULL, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, 
+    void *mapped = mmap(NULL, PAGE_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED,
                         memfd, addr);
     //now, *mapped = memory at physical address of addr.
     if (mapped == MAP_FAILED) {
@@ -268,14 +268,14 @@ int main(void)
 	volatile unsigned* gpio_fsel1;
 	volatile unsigned* gpio_set0;
 	volatile unsigned* gpio_clr0;
-	
+
 	//see dma channel in use:
 	//cat /sys/class/dma/dma0chan7/in_use
 	int dmaChNum = 4; // 1st free
 	//First, open the linux device, /dev/mem
     //dev/mem provides access to the physical memory of the entire processor+ram
-    //This is needed because Linux uses virtual memory, thus the process's 
-    //memory at 0x00000000 will NOT have the same contents as the physical 
+    //This is needed because Linux uses virtual memory, thus the process's
+    //memory at 0x00000000 will NOT have the same contents as the physical
     //memory at 0x00000000
     int memfd = open("/dev/mem", O_RDWR | O_SYNC);
     if (memfd < 0) {
@@ -283,50 +283,50 @@ int main(void)
         exit(1);
     }
     int pagemapfd = open("/proc/self/pagemap", O_RDONLY);
-  
+
     //now map /dev/mem into memory, but only map specific peripheral sections:
     volatile uint32_t *dmaBaseMem = mapPeripheral(memfd, DMA_BASE);
-	
+
 	//create src and dest memory
 	void *virtSrcPageCached = makeLockedMem(PAGE_SIZE/2);
 	void *virtSrcPage = virtSrcPageCached;
-//	void *virtSrcPage = makeUncachedMemView(virtSrcPageCached, PAGE_SIZE/2, 
-//                                           memfd, pagemapfd);                                           
+//	void *virtSrcPage = makeUncachedMemView(virtSrcPageCached, PAGE_SIZE/2,
+//                                           memfd, pagemapfd);
 	void *physSrcPage = (void*)virtToUncachedPhys(virtSrcPageCached, pagemapfd);
-	
+
 	void *virtSrc2PageCached = makeLockedMem(PAGE_SIZE/2);
 	void *virtSrc2Page = virtSrc2PageCached;
-//	void *virtSrc2Page = makeUncachedMemView(virtSrc2PageCached, PAGE_SIZE/2, 
-//                                           memfd, pagemapfd);                                           
+//	void *virtSrc2Page = makeUncachedMemView(virtSrc2PageCached, PAGE_SIZE/2,
+//                                           memfd, pagemapfd);
 	void *physSrc2Page = (void*)virtToUncachedPhys(virtSrc2PageCached, pagemapfd);
-	
+
 	void *virtDestPageCached = makeLockedMem(PAGE_SIZE/2);
 	void *virtDestPage = virtDestPageCached;
-//	void *virtDestPage = makeUncachedMemView(virtDestPageCached, PAGE_SIZE/2, 
+//	void *virtDestPage = makeUncachedMemView(virtDestPageCached, PAGE_SIZE/2,
 //                                           memfd, pagemapfd);
 	void *physDestPage = (void*)virtToUncachedPhys(virtDestPageCached, pagemapfd);
-	
+
     char *srcArray = (char*)virtSrcPage;
     char *src2Array = (char*)virtSrc2Page;
     snprintf(srcArray, PAGE_SIZE/2, "Hello World");
     snprintf(src2Array, PAGE_SIZE/2, "Goodbye World");
-	
+
 	//create and init dma control block
 	size_t cbPageBytes = sizeof(struct DmaControlBlock);
     void *virtCbPageCached = makeLockedMem(cbPageBytes);
     void *virtCbPage = virtCbPageCached;
-//    void *virtCbPage = makeUncachedMemView(virtCbPageCached, cbPageBytes, 
+//    void *virtCbPage = makeUncachedMemView(virtCbPageCached, cbPageBytes,
 //                                           memfd, pagemapfd);
     void *physCbPage = (void*)virtToUncachedPhys(virtCbPageCached, pagemapfd);
     void *virtCb2PageCached = makeLockedMem(cbPageBytes);
     void *virtCb2Page = virtCb2PageCached;
-//    void *virtCbPage = makeUncachedMemView(virtCb2PageCached, cbPageBytes, 
+//    void *virtCbPage = makeUncachedMemView(virtCb2PageCached, cbPageBytes,
 //                                           memfd, pagemapfd);
     void *physCb2Page = (void*)virtToUncachedPhys(virtCb2PageCached, pagemapfd);
-                
+
 	if(!bcm2835_init())
 		return 1;
-                
+
 	gpio_map = mmap(
       NULL,             // Any adddress in our space will do
       4*1024,           // Map length (always 4K)
@@ -336,77 +336,77 @@ int main(void)
       (off_t)bcm2835_peripherals_base +
           BCM2835_GPIO_BASE // Adress to GPIO peripheral
 	);
-                
+
     if (gpio_map == MAP_FAILED) {
       printf("mmap error %d\n", (int)gpio_map); // errno also set!
       exit(-1);
 	}
-             
+
 	// Always use volatile pointer!
 	gpio = (volatile unsigned*)gpio_map;
 	gpio_addr = (char*)gpio_map;
-	
+
 	gpio_fsel1 = (volatile unsigned*)(gpio_addr+0x0004);
 	gpio_set0  = (volatile unsigned*)(gpio_addr+0x001C);
 	gpio_clr0  = (volatile unsigned*)(gpio_addr+0x0028);
 	void *gpio_set0_phys = (unsigned int*)(GPIO_BASE_BUS+0x001C);
 	void *gpio_clr0_phys = (unsigned int*)(GPIO_BASE_BUS+0x0028);
-	
+
 	printf("%x\n", (unsigned int)bcm2835_peripherals_base);
 	printf("%x\n", (unsigned int)bcm2835_peripherals_base +
                                  BCM2835_GPIO_BASE+0x001C);
 	printf("%x\n", (unsigned int)gpio_set0_phys);
 	printf("%x\n", (unsigned int)gpio_clr0_phys);
-	
+
 	              // register numbering: Bit 31 ... Bit 0
 	*gpio_fsel1 = 0x01000000; // Set GPIO18 to Out
-	
+
 	*gpio_set0 = 0x00040000;
 	usleep(500*1000);
 	*gpio_clr0 = 0x00040000;
 	usleep(500*1000);
-	
+
 	*(uint32_t*)virtSrcPage = 0x00040000;
-	                                          
-    struct DmaControlBlock *cb1 = (struct DmaControlBlock*)virtCbPage;	
+
+    struct DmaControlBlock *cb1 = (struct DmaControlBlock*)virtCbPage;
     cb1->TI = DMA_CB_TI_SRC_INC | DMA_CB_TI_DEST_INC; //after each byte copied, we want to increment the source and destination address of the copy, otherwise we'll be copying to the same address.
     cb1->SOURCE_AD = (uint32_t)physSrcPage; //set source and destination DMA address
     cb1->DEST_AD = (uint32_t)gpio_set0_phys;
     cb1->TXFR_LEN = 4;
     cb1->STRIDE = 0; //no 2D stride
     cb1->NEXTCONBK = (uint32_t)physCb2Page;
-	
-	struct DmaControlBlock *cb2 = (struct DmaControlBlock*)virtCb2Page;	
+
+	struct DmaControlBlock *cb2 = (struct DmaControlBlock*)virtCb2Page;
     cb2->TI = DMA_CB_TI_SRC_INC | DMA_CB_TI_DEST_INC; //after each byte copied, we want to increment the source and destination address of the copy, otherwise we'll be copying to the same address.
     cb2->SOURCE_AD = (uint32_t)physSrcPage; //set source and destination DMA address
     cb2->DEST_AD = (uint32_t)gpio_clr0_phys;
     cb2->TXFR_LEN = 4;
     cb2->STRIDE = 0; //no 2D stride
     cb2->NEXTCONBK = (uint32_t)physCbPage;
-	
+
 	printf("destination was initially: '%s'\n", (char*)virtDestPage);
 
     //enable DMA channel (it's probably already enabled, but we want to be sure):
     writeBitmasked(dmaBaseMem + DMAENABLE/4, 1 << dmaChNum, 1 << dmaChNum);
-	
+
 	//configure the DMA header to point to our control block:
-    volatile struct DmaChannelHeader *dmaHeader 
-		= (volatile struct DmaChannelHeader*)(dmaBaseMem + (DMACH(dmaChNum))/4); 
+    volatile struct DmaChannelHeader *dmaHeader
+		= (volatile struct DmaChannelHeader*)(dmaBaseMem + (DMACH(dmaChNum))/4);
 		//dmaBaseMem is a uint32_t ptr, so divide by 4 before adding byte offset
     dmaHeader->CS = DMA_CS_RESET; //make sure to disable dma first.
     sleep(1); //give time for the reset command to be handled.
-    dmaHeader->DEBUG = DMA_DEBUG_READ_ERROR | DMA_DEBUG_FIFO_ERROR 
+    dmaHeader->DEBUG = DMA_DEBUG_READ_ERROR | DMA_DEBUG_FIFO_ERROR
         | DMA_DEBUG_READ_LAST_NOT_SET_ERROR; // clear debug error flags
     dmaHeader->CONBLK_AD = (uint32_t)physCbPage; //we have to point it to the PHYSICAL address of the control block (cb1)
     dmaHeader->CS = DMA_CS_ACTIVE; //set active bit, but everything else is 0.
-    
-    sleep(1); //give time for copy to happen
+
+    sleep(5); //give time for copy to happen
 
     dmaHeader->CS = DMA_CS_RESET; //make sure to disable dma first.
     sleep(1); //give time for the reset command to be handled.
 
     printf("destination reads: '%s'\n", (char*)virtDestPage);
-	
+
 //	freeUncachedMemView(virtSrcPage, PAGE_SIZE/2);
     freeLockedMem(virtSrcPageCached, PAGE_SIZE/2);
 //	freeUncachedMemView(virtDestPage, PAGE_SIZE/2);

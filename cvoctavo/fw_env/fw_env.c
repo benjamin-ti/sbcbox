@@ -42,6 +42,8 @@
 #include "fw_env_private.h"
 #include "fw_env.h"
 
+#define DEBUG
+
 struct env_opts default_opts = {
 #ifdef CONFIG_FILE
 	.config_file = CONFIG_FILE
@@ -935,9 +937,6 @@ static int flash_read_buf(int dev, int fd, void *buf, size_t count,
 		}
 
 		if (rc) {	/* block is bad */
-	                processed += readlen;
-	                readlen = min(blocklen, count - processed);
-	                block_seek = 0;
 	                blockstart += blocklen;
 			continue;
 		}
@@ -1374,6 +1373,10 @@ static int flash_io(int mode)
 
 	if (mode == O_RDWR) {
 		rc = flash_io_write(fd_current);
+		if (rc) {
+			dev_current = !dev_current;
+			rc = flash_io_write(fd_current);
+		}
 	} else {
 		rc = flash_read(fd_current);
 	}
@@ -1438,13 +1441,15 @@ int fw_env_open(struct env_opts *opts)
 
 	dev_current = 0;
 	if (flash_io(O_RDONLY)) {
-		ret = -EIO;
-		goto open_cleanup;
+		crc0_ok = 0;
+		// ret = -EIO;
+		// goto open_cleanup;
+	}
+	else {
+		crc0 = crc32(0, (uint8_t *)environment.data, ENV_SIZE);
+		crc0_ok = (crc0 == *environment.crc);
 	}
 
-	crc0 = crc32(0, (uint8_t *)environment.data, ENV_SIZE);
-
-	crc0_ok = (crc0 == *environment.crc);
 	if (!have_redund_env) {
 		if (!crc0_ok) {
 			fprintf(stderr,
@@ -1473,8 +1478,13 @@ int fw_env_open(struct env_opts *opts)
 		 */
 		environment.image = addr1;
 		if (flash_io(O_RDONLY)) {
-			ret = -EIO;
-			goto open_cleanup;
+			crc1_ok = 0;
+			// ret = -EIO;
+			// goto open_cleanup;
+		}
+		else {
+			crc1 = crc32(0, (uint8_t *)redundant->data, ENV_SIZE);
+			crc1_ok = (crc1 == redundant->crc);
 		}
 
 		/* Check flag scheme compatibility */
@@ -1500,9 +1510,6 @@ int fw_env_open(struct env_opts *opts)
 			goto open_cleanup;
 		}
 
-		crc1 = crc32(0, (uint8_t *)redundant->data, ENV_SIZE);
-
-		crc1_ok = (crc1 == redundant->crc);
 		flag1 = redundant->flags;
 
 		/*

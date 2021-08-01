@@ -1,6 +1,10 @@
 CC=arm-linux-gnueabihf-gcc -g --sysroot /opt/pi/sysroot
 
-all: mkO O/dmaSimpleCopy O/dmaSimpleGPIO
+all: mkO O/dmaSimpleCopy O/dmaSimpleGPIO O/myRaspiDma
+
+O/myRaspiDma: O/MyRaspiDMA.o
+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -lpthread -lrt -o $@
+	# scp $@ pi@192.168.0.81:~
 
 O/dmaSimpleCopy: O/dmaSimpleCopy.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -lpthread -lrt -o $@

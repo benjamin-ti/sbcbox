@@ -44,5 +44,7 @@ cd sysroot
 sudo rsync -avz pi@$PI_IP_ADDR:/lib .
 sudo rsync -avz pi@$PI_IP_ADDR:/usr/include usr
 sudo rsync -avz pi@$PI_IP_ADDR:/usr/lib usr
+sudo rsync -avz pi@$PI_IP_ADDR:/usr/local/include usr/local
+sudo rsync -avz pi@$PI_IP_ADDR:/usr/local/lib usr/local
 # evtl. /usr/local/include
 # evtl. /usr/local/lib

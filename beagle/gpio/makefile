@@ -2,7 +2,7 @@
 #CC=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
 CC=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
 
-all: mkO O/gpioHardcore O/mygpio O/mygpiod O/mygpiodinp O/cvdispprog O/cvdispprint
+all: mkO O/gpioHardcore O/mygpio O/mygpiod O/mygpiodinp
 
 upload:
 	scp O/mygpiod root@10.102.1.114:~ 
@@ -18,12 +18,6 @@ O/mygpiod: O/mygpiod.o
 
 O/mygpiodinp: O/mygpiodinp.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -lgpiod -o $@
-
-O/cvdispprog: O/cvdispprog.o O/atmega.o O/mirrortable.o O/byteoperation.o O/VCEndian.o O/zoomtable.o
-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
-
-O/cvdispprint: O/cvdispprint.o
-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@
 
 mkO:
 	mkdir -p O

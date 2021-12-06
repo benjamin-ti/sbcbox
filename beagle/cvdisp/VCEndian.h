@@ -1,12 +1,12 @@
-/*
- * VCEndian.h
- *
- *  Created on: 21.08.2015
- *      Author: user
- */
+/***************************************************************************/
+/*                             Printerfirmware                             */
+/*                    Copyright (C) Carl Valentin GmbH                     */
+/*                       http://www.carl-valentin.de                       */
+/*                  This code is licenced under the LGPL                   */
+/***************************************************************************/
 
-#ifndef VCSTDLIB_VCENDIAN_VCENDIAN_H_
-#define VCSTDLIB_VCENDIAN_VCENDIAN_H_
+#ifndef VC_VCENDIAN_H_
+#define VC_VCENDIAN_H_
 
 #include "vcplatform.h"
 
@@ -52,4 +52,4 @@ extern "C"
 } // extern "C"
 #endif
 
-#endif /* VCSTDLIB_VCENDIAN_VCENDIAN_H_ */
+#endif /* VC_VCENDIAN_H_ */

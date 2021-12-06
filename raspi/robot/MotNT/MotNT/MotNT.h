@@ -1,6 +1,8 @@
 /***************************************************************************/
-/*                             Druckersoftware                             */
+/*                             Printerfirmware                             */
 /*                    Copyright (C) Carl Valentin GmbH                     */
+/*                       http://www.carl-valentin.de                       */
+/*                  This code is licenced under the LGPL                   */
 /***************************************************************************/
 
 #ifndef _VC_MOTNT_H_

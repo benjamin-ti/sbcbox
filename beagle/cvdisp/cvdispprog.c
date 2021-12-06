@@ -1,9 +1,11 @@
 /***************************************************************************/
-/*                          Display Program Tool                           */
+/*                             Printerfirmware                             */
 /*                    Copyright (C) Carl Valentin GmbH                     */
+/*                       http://www.carl-valentin.de                       */
+/*                  This code is licenced under the LGPL                   */
 /***************************************************************************/
 
-/*. IMPORT ================================================================*/
+/* IMPORT =================================================================*/
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -22,17 +24,17 @@
 #include "atmega.h"
 #include "byteoperation.h"
 
-/*. ENDIMPORT =============================================================*/
+/* ENDIMPORT ==============================================================*/
 
 
-/*. EXPORT ================================================================*/
+/* EXPORT =================================================================*/
 
-/*. ENDEXPORT =============================================================*/
+/* ENDEXPORT ==============================================================*/
 
 
-/*. LOCAL =================================================================*/
+/* LOCAL ==================================================================*/
 
-/*-------------------------------- Makros ---------------------------------*/
+/*-------------------------------- macros ---------------------------------*/
 
 #define VERSION$ "1.0"
 
@@ -54,27 +56,27 @@
 
 #define HEAD_SIZE 148
 
-/*--------------------------- Typdeklarationen ----------------------------*/
+/*--------------------------- type declaration ----------------------------*/
 
 typedef enum {
     MBOARD_BEAGLE,
     MBOARD_CV,
 } MBOARD;
 
-/*------------------------------ Prototypen -------------------------------*/
+/*------------------------------ prototypes -------------------------------*/
 
 static void PrintfErrorAndExitReal(unsigned int uiLine, const char* fmt, ...);
 static int SysFs_GPIOWrite(int pin, int value);
 static void SysFs_WriteValue2File(char* pcFile, char* pcValue);
 
-/*------------------------ Konstantendeklarationen ------------------------*/
+/*------------------------- constant declarations -------------------------*/
 
 static const char* lk_spidev = "/dev/spidev1.1";
 static const AtmelID lk_idATMEL = ATMEGA64;
 #define ATMEGA_BYTES_PER_PAGE 128*2
 static const uint32_t lk_speed = 750000;
 
-/*------------------------- modulglobale Variable -------------------------*/
+/*---------------------------- local variables ----------------------------*/
 
 static int lk_fd = -1;
 static BOOL   lk_pinsAreSetToSPI;
@@ -86,7 +88,7 @@ static BOOL   lk_isVerifyOnly;
 
 static char lk_buf4CompletePageWithInstructions[ATMEGA_BYTES_PER_PAGE*ATMEGA_SIZE_INSTRUCTION+ATMEGA_SIZE_INSTRUCTION];
 
-/*. ENDLOCAL ==============================================================*/
+/* ENDLOCAL ===============================================================*/
 
 /*=========================================================================*/
 static void Usage(char *programName)

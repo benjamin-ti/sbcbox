@@ -1,12 +1,14 @@
 /***************************************************************************/
-/*                             Druckersoftware                             */
+/*                             Printerfirmware                             */
 /*                    Copyright (C) Carl Valentin GmbH                     */
+/*                       http://www.carl-valentin.de                       */
+/*                  This code is licenced under the LGPL                   */
 /***************************************************************************/
 
 #ifndef _VC_ATMEGA_H_
 #define _VC_ATMEGA_H_
 
-/*. IMPORT ================================================================*/
+/* IMPORT =================================================================*/
 
 #include "vcplatform.h"
 
@@ -16,12 +18,12 @@
 
 extern volatile unsigned char gl_ucAtmelCtrl;
 
-/*. ENDIMPORT =============================================================*/
+/* ENDIMPORT ==============================================================*/
 
 
-/*. EXPORT ================================================================*/
+/* EXPORT =================================================================*/
 
-/*-------------------------------- Makros ---------------------------------*/
+/*-------------------------------- macros ---------------------------------*/
 
 #define CHANNEL_SCIF0   0
 #define CHANNEL_SCIF2   2
@@ -79,7 +81,7 @@ extern volatile unsigned char gl_ucAtmelCtrl;
 
 #define ATMEGA_SIZE_INSTRUCTION    4    // instruction length in byte
 
-/*--------------------------- Typdeklarationen ----------------------------*/
+/*--------------------------- type declaration ----------------------------*/
 
 typedef enum
 {
@@ -150,7 +152,7 @@ enum atmel_instruction_set
     ATMEL_NUM_INSTRUCTION
 };
 
-/*------------------------------ Prototypen -------------------------------*/
+/*------------------------------ prototypes -------------------------------*/
 
 TYerrno Atmega_GetInstruction(AtmelID idATMEL,
                               unsigned char idInstruction,
@@ -165,8 +167,8 @@ void Atmega_Start(AtmelDevices devAtmel);
 void RestoreSCIandAtmels(unsigned int);
 void InitSCIForAtmelUpdate(unsigned int);
 
-/*------------------------ Konstantendeklarationen ------------------------*/
+/*------------------------- constant declarations -------------------------*/
 
-/*. ENDEXPORT =============================================================*/
+/* ENDEXPORT ==============================================================*/
 
 #endif // _VC_ATMEGA_H_

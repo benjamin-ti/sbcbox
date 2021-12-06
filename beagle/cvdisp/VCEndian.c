@@ -1,9 +1,9 @@
-/*
- * VCEndian.c
- *
- *  Created on: 21.08.2015
- *      Author: user
- */
+/***************************************************************************/
+/*                             Printerfirmware                             */
+/*                    Copyright (C) Carl Valentin GmbH                     */
+/*                       http://www.carl-valentin.de                       */
+/*                  This code is licenced under the LGPL                   */
+/***************************************************************************/
 
 #include "vcplatform.h"
 
@@ -39,9 +39,6 @@
 #  error Could not detect endianness
 # endif
 #endif
-
-
-
 
 
 /*=========================================================================*/

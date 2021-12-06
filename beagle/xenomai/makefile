@@ -1,7 +1,7 @@
-SYSROOT := /home/user/workspace/bbbrout_xenomai2/host/arm-buildroot-linux-gnueabihf/sysroot
+SYSROOT := /opt/bbb_xenomai_sdk/arm-buildroot-linux-gnueabihf/sysroot
 XENO_CONFIG := $(SYSROOT)/usr/bin/xeno-config --skin=alchemy
 CFLAGS := $(shell DESTDIR=$(SYSROOT) $(XENO_CONFIG) --cflags)
-LDFLAGS := $(shell DESTDIR=$(SYSROOT) $(XENO_CONFIG) --ldflags)
+LDFLAGS := -lgpiod $(shell DESTDIR=$(SYSROOT) $(XENO_CONFIG) --ldflags)
 CC := $(shell DESTDIR=$(SYSROOT) $(XENO_CONFIG) --cc)
 
 EXECUTABLE := xenohello

@@ -1,0 +1,42 @@
+# Cross-Compiler in Ubuntu installieren
+#
+# sudo apt install gcc-arm-linux-gnueabi
+sudo apt install gcc-arm-linux-gnueabihf
+ 
+# Kernelquellcode fuer den Raspberry Pi downloaden
+#
+mkdir -p raspikernel/
+cd raspikernel
+# oder linux-4.14.y-rt
+mkdir linux-4.14.y
+cd linux-4.14.y
+git clone --depth=1 https://github.com/raspberrypi/linux --branch rpi-4.14.y
+# Patch: wget https://mirrors.edge.kernel.org/pub/linux/kernel/projects/rt/4.14/patch-4.14.93-rt53.patch.gz
+# git clone https://github.com/raspberrypi/tools.git
+cd linux
+ 
+# Config (auf Raspi)
+# sudo modprobe configs # Das legt /proc/config.gz an!
+# sudo zcat /proc/config.gz > raspi.config
+# scp pi@10.102.1.163:~/raspi.config .
+ 
+# Cross-Generierung des Kernels
+#
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabihf-
+# export CROSS_COMPILE=~/raspikernel/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/bin/arm-linux-gnueabihf-
+make bcm2709_defconfig
+# make olddefconfig
+# Patch: gunzip patch-4.14.93-rt53.patch.gz 
+# Patch: cat patch-4.14.93-rt53.patch | patch -p1
+make -j 4
+
+export INSTALL_MOD_PATH=/tmp/modules 
+make modules_install
+rsync -avz /tmp/modules/ pi@raspberrypi:~
+# cd ../modinst; tar -czvf modules.tar.gz lib/
+
+/boot/config.txt -> kernel=Image
+
+# cp arch/arm/boot/dts/*.dtb /boot
+# cp arch/arm/boot/dts/overlays/*.dtb* /boot/overlays/

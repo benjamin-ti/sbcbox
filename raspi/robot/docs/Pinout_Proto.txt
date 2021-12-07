@@ -1,0 +1,22 @@
+MOTOR_RESET - GPIO3
+
+M1_CURRENT  - GPIO2
+M1_DIR      - GPIO4
+M1_STEP     - GPIO14
+
+M2_CURRENT  - GPIO15
+M2_DIR      - GPIO17
+M2_STEP     - GPIO18
+
+// Ab hier ist alles fraglich und sollte nochmal überprüft werden
+M3_CURRENT  - GPIO4
+M3_DIR      - GPIO23
+M3_STEP     - GPIO22
+
+M4_CURRENT  - GPIO10
+M4_STEP     - GPIO24
+
+GND         - Pin39
+
+FPGA_O_18   - GPIO9
+

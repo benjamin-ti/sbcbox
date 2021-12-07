@@ -1,0 +1,37 @@
+diff -U 3 -H -d -r -N -- /home/user/u_boot/bbb_uboot_org/uboot-2019.07/board/ti/am335x/board.c /home/user/workspaceCpp/bbbrout1/build/uboot-2019.07/board/ti/am335x/board.c
+--- a/board/ti/am335x/board.c	2019-07-08 21:23:28.000000000 +0200
++++ b/board/ti/am335x/board.c	2021-07-09 19:34:12.960109849 +0200
+@@ -982,3 +982,20 @@
+ 	.platdata = &am335x_mmc1_platdata,
+ };
+ #endif
++
++int board_is_cvoctavo(void)
++{
++	int b;
++	
++	b = board_ti_is("A335BNLT");
++	if (b)
++		return b;
++	
++	// if it is none of the others, then it is an beagle black
++	if ( board_ti_is("A335BONE") || board_ti_is("A335PBGL") || board_ti_is("A335X_SK") 
++		 || board_ti_is("A33515BB") || board_ti_is("A335_ICE") ) {
++		return 0;	
++	}
++
++	return 1;
++}
+diff -U 3 -H -d -r -N -- /home/user/u_boot/bbb_uboot_org/uboot-2019.07/board/ti/am335x/board.h /home/user/workspaceCpp/bbbrout1/build/uboot-2019.07/board/ti/am335x/board.h
+--- a/board/ti/am335x/board.h	2021-07-15 14:47:51.055846608 +0200
++++ b/board/ti/am335x/board.h	2021-07-09 19:34:35.080364232 +0200
+@@ -30,7 +30,8 @@
+ 
+ static inline int board_is_bone_lt(void)
+ {
+-	return board_ti_is("A335BNLT");
++	int board_is_cvoctavo(void);
++	return board_is_cvoctavo();
+ }
+ 
+ static inline int board_is_pb(void)

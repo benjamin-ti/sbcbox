@@ -1,0 +1,114 @@
+<menu id="126" textid="I/O Port Mode 9-16" name="I/O·Port·Mode·9-16">
+<parameter id="217393004" textid="Output Error" name="Output Fehler" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217394040" textid="Output Job Active" name="Output Druckauftrag aktiv" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217394940" textid="Output Label in Dispenser PC" name="Output Etikett unter Spende-LS" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217395852" textid="Output Printing" name="Output Druckend" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217396748" textid="Output Print-Ready" name="Output Druck-Bereit" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217397648" textid="Output Applicator Ready for Apply" name="Output Applicator Ready for Apply" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217398564" textid="Output Warning Scanner no read" name="Output Scanner Kein Barcode" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+<parameter id="217399476" textid="Output RibbonEnd prior warning" name="Output Transferband Vorwarnung" idvalue="Output high active" size="18">High aktiv
+	<list>
+		<element>Aus</element>
+		<element>High aktiv</element>
+		<element>Low aktiv</element>
+		<element>Software</element>
+	</list>
+	<idlist>
+		<element>Output off</element>
+		<element>Output high active</element>
+		<element>Output low active</element>
+		<element>Output software</element>
+	</idlist>
+</parameter>
+</menu>

@@ -1,0 +1,57 @@
+Antwort:
+<menu id="31" textid="Job Ctrl" name="Job Ctrl">
+	<menu id="32" textid="Home" name="Home"/>
+	<menu id="73" textid="Memorycard" name="Speicherkarte"/>
+	<menu id="57" textid="Print Start" name="Druck Start"/>
+	<menu id="50" textid="Info" name="Info"/>
+<parameter id="217016864" textid="User HMI Theme" name="User HMI Theme" idvalue="THEME CV" readonly="yes" size="14">THEME CV
+	<list>
+		<element>THEME CV</element>
+		<element>THEME GARBURG</element>
+		<element>THEME METRONIC</element>
+		<element>THEME MFG</element>
+		<element>THEME BELLMARK</element>
+		<element>THEME GEA</element>
+	</list>
+	<idlist>
+		<element>THEME CV</element>
+		<element>THEME GARBURG</element>
+		<element>THEME METRONIC</element>
+		<element>THEME MFG</element>
+		<element>THEME BELLMARK</element>
+		<element>THEME GEA</element>
+	</idlist>
+</parameter>
+<parameter id="217114560" textid="OEMPrinterType" name="Drucker" idvalue="Compa II 162/12" readonly="yes">Compa II 162/12
+</parameter>
+<parameter id="216935636" textid="Show Process Data" name="Show Process Data" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217101472" textid="Preview Avail." name="Druckvorschau aktiviert" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="216936680" textid="Custom Logo" name="Custom Logo" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+</menu>

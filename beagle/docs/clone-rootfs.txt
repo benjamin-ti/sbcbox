@@ -1,0 +1,2 @@
+tar -cvpf ~/bbrootfs.tar --exclude=proc --exclude=sys --exclude=dev/pts .
+# proc und sys muessen aber als Verzeichnisse existieren

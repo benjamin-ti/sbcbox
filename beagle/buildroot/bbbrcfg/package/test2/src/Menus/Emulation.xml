@@ -1,0 +1,60 @@
+<menu id="82" textid="Emulation" name="Emulation">
+<parameter id="217104248" textid="Protocol" name="Protokoll" idvalue="CVPL" size="4">CVPL
+	<list>
+		<element>CVPL</element>
+		<element>ZPL</element>
+	</list>
+	<idlist>
+		<element>CVPL</element>
+		<element>ZPL</element>
+	</idlist>
+</parameter>
+<parameter id="217104912" textid="Head Resolution" name="Druckkopf Auflösung" idvalue="11.8" minvalue="0.1" maxvalue="99.9" size="4">11.8
+</parameter>
+<parameter id="217105608" textid="Drive Mapping B" name="Laufwerkzuordnung B" idvalue="A" size="1">A
+	<list>
+		<element>A</element>
+		<element>R</element>
+		<element>U</element>
+	</list>
+	<idlist>
+		<element>A</element>
+		<element>R</element>
+		<element>U</element>
+	</idlist>
+</parameter>
+<parameter id="217106256" textid="Drive Mapping E" name="Laufwerkzuordnung E" idvalue="A" size="1">A
+	<list>
+		<element>A</element>
+		<element>R</element>
+		<element>U</element>
+	</list>
+	<idlist>
+		<element>A</element>
+		<element>R</element>
+		<element>U</element>
+	</idlist>
+</parameter>
+<parameter id="217106904" textid="Drive Mapping R" name="Laufwerkzuordnung R" idvalue="R" size="1">R
+	<list>
+		<element>A</element>
+		<element>R</element>
+		<element>U</element>
+	</list>
+	<idlist>
+		<element>A</element>
+		<element>R</element>
+		<element>U</element>
+	</idlist>
+</parameter>
+<parameter id="217108932" textid="PJL" name="PJL" idvalue="On" size="3">Ein
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+</menu>

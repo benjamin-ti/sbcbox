@@ -1,0 +1,25 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>Page1Form.ui.qml</file>
+        <file>main.qml</file>
+        <file>qtquickcontrols2.conf</file>
+        <file>Sidebar.ui.qml</file>
+        <file>image/CV_Logo_vertikal_110x106.png</file>
+        <file>image/bl_ws.png</file>
+        <file>image/ws_bl.png</file>
+        <file>clock/arrow.png</file>
+        <file>clock/background.png</file>
+        <file>clock/center.png</file>
+        <file>clock/clock.png</file>
+        <file>clock/Clock.qml</file>
+        <file>clock/clock-night.png</file>
+        <file>clock/hour.png</file>
+        <file>clock/minute.png</file>
+        <file>clock/quit.png</file>
+        <file>clock/second.png</file>
+        <file>Page5Form.ui.qml</file>
+        <file>Page2.qml</file>
+        <file>Page2Form.ui.qml</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,1 @@
+gcc pwmSimple.c -lwiringPi

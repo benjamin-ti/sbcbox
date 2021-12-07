@@ -1,0 +1,30 @@
+# Cross-Compiler in Ubuntu installieren
+#
+# sudo apt install gcc-arm-linux-gnueabi
+sudo apt install gcc-arm-linux-gnueabihf
+
+# Kernelquellcode fuer den Raspberry Pi downloaden
+#
+mkdir -p bbkernel/
+cd bbkernel
+git clone --depth=1 https://github.com/beagleboard/linux --branch 4.14-rt
+cd linux
+
+# Config (auf BeagleBone)
+# sudo modprobe configs # Das legt /proc/config.gz an!
+# sudo zcat /proc/config.gz > bb.config
+# scp debian@10.102.1.163:~/bb.config .
+
+# Cross-Generierung des Kernels
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabihf-
+make bb.org_defconfig
+# make olddefconfig
+make -j 4
+
+export INSTALL_MOD_PATH=/tmp/modules
+make modules_install
+rsync -avz /tmp/modules/ debian@10.102.1.163:~
+
+export INSTALL_DTBS_PATH=/tmp/modules
+make dtbs_install

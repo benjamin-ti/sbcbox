@@ -1,0 +1,24 @@
+<menu id="58" textid="Print Settings" name="Druckparameter">
+<parameter id="217126512" textid="Print Speed" name="Druckgeschwindigkeit" idvalue="50" minvalue="50" maxvalue="150" size="3">50
+</parameter>
+<parameter id="217127328" textid="Contrast" name="Brennstärke" idvalue="30" minvalue="10" maxvalue="200" size="3">30
+</parameter>
+<parameter id="216992940" textid="Ribbon Control" name="Prüfung Transferband" idvalue="Sensib. Weak" size="14">Empfindlichkeit schwach
+	<list>
+		<element>Aus</element>
+		<element>Empfindlichkeit schwach</element>
+		<element>Empfindlichkeit stark</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>Sensib. Weak</element>
+		<element>Sensib. Strong</element>
+	</idlist>
+</parameter>
+<parameter id="216993616" textid="Y-Displacement" name="Y-Verschiebung" idvalue="0.0" minvalue="-30.0" maxvalue="90.0" size="5">0.0
+</parameter>
+<parameter id="216994584" textid="X-Displacement" name="X-Verschiebung" idvalue="5.5" minvalue="-90.0" maxvalue="90.0" size="5">5.5
+</parameter>
+<parameter id="216995404" textid="Tear off Displacement" name="Offset Abreißkante" idvalue="12.0" minvalue="0.0" maxvalue="50.0" size="5">12.0
+</parameter>
+</menu>

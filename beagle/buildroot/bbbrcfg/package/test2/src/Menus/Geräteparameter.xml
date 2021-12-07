@@ -1,0 +1,226 @@
+<menu id="67" textid="DeviceSettings" name="Geräteparameter">
+<parameter id="217006464" textid="Label Confirm" name="Etikettenbestätigung" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217007340" textid="Default Label" name="Standard Etikett" idvalue="On" size="3">Ein
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217008416" textid="Codepage" name="Auswahl Codepage" idvalue="1252" size="4">1252
+	<list>
+		<element>1252</element>
+		<element>437</element>
+		<element>850</element>
+		<element>852</element>
+		<element>857</element>
+		<element>1250</element>
+		<element>1251</element>
+		<element>1253</element>
+		<element>1254</element>
+		<element>1257</element>
+		<element>WGL4</element>
+	</list>
+	<idlist>
+		<element>1252</element>
+		<element>437</element>
+		<element>850</element>
+		<element>852</element>
+		<element>857</element>
+		<element>1250</element>
+		<element>1251</element>
+		<element>1253</element>
+		<element>1254</element>
+		<element>1257</element>
+		<element>WGL4</element>
+	</idlist>
+</parameter>
+<parameter id="217010392" textid="Printer Language" name="Druckersprache" idvalue="German" size="10">Deutsch
+	<list>
+		<element>Deutsch</element>
+		<element>Englisch</element>
+		<element>Französisch</element>
+		<element>Spanisch</element>
+		<element>Portugiesisch</element>
+		<element>Holländisch</element>
+		<element>Italienisch</element>
+		<element>Dänisch</element>
+		<element>Finnisch</element>
+		<element>Polnisch</element>
+		<element>Tschechisch</element>
+		<element>Ungarisch</element>
+		<element>Russisch</element>
+		<element>Ukrainisch</element>
+	</list>
+	<idlist>
+		<element>German</element>
+		<element>English</element>
+		<element>French</element>
+		<element>Spanish</element>
+		<element>Portuguese</element>
+		<element>Dutch</element>
+		<element>Italian</element>
+		<element>Danish</element>
+		<element>Finnish</element>
+		<element>Polish</element>
+		<element>Czech</element>
+		<element>Hungarian</element>
+		<element>Russian</element>
+		<element>Ukrainian</element>
+	</idlist>
+</parameter>
+<parameter id="217010604" textid="Keyboard Layout" name="Tastaturbelegung" idvalue="German" size="11">Deutsch
+	<list>
+		<element>Deutsch</element>
+		<element>Englisch</element>
+		<element>Französisch</element>
+		<element>Griechisch</element>
+		<element>Spanisch</element>
+		<element>Schwedisch</element>
+		<element>US Amerikanisch</element>
+		<element>Russisch</element>
+	</list>
+	<idlist>
+		<element>German</element>
+		<element>English</element>
+		<element>French</element>
+		<element>Greek</element>
+		<element>Spanish</element>
+		<element>Swedish</element>
+		<element>US American</element>
+		<element>Russian</element>
+	</idlist>
+</parameter>
+<parameter id="217012132" textid="Customized Entry" name="Bedienereingabe" idvalue="On" size="14">Ein
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+		<element>Automatisch</element>
+		<element>Auto no Quant.</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+		<element>Auto</element>
+		<element>Auto no Quant.</element>
+	</idlist>
+</parameter>
+<parameter id="217012908" textid="Hotstart" name="Warmstart" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217013644" textid="Autoload" name="Etikett automatisch laden" idvalue="Off" size="3">Aus
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217014380" textid="Manual Reprint" name="Manueller Nachdruck" idvalue="On" size="3">Ein
+	<list>
+		<element>Aus</element>
+		<element>Ein</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>On</element>
+	</idlist>
+</parameter>
+<parameter id="217015120" textid="Sync at power on" name="Synchronisieren b. Einschalten" idvalue="Off" size="10">Aus
+	<list>
+		<element>Aus</element>
+		<element>Messen</element>
+		<element>Etikettenvorschub</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>Measure</element>
+		<element>Label Feed</element>
+	</idlist>
+</parameter>
+<parameter id="217128824" textid="Buzzer" name="Signalton" idvalue="2" size="3">2
+	<list>
+		<element>Aus</element>
+		<element>1</element>
+		<element>2</element>
+		<element>3</element>
+		<element>4</element>
+		<element>5</element>
+		<element>6</element>
+		<element>7</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>1</element>
+		<element>2</element>
+		<element>3</element>
+		<element>4</element>
+		<element>5</element>
+		<element>6</element>
+		<element>7</element>
+	</idlist>
+</parameter>
+<parameter id="217129584" textid="Field Handling" name="Feldverwaltung" idvalue="Off" size="14">Aus
+	<list>
+		<element>Aus</element>
+		<element>Grafik erhalten</element>
+		<element>Grafik löschen</element>
+	</list>
+	<idlist>
+		<element>Off</element>
+		<element>Keep graphic</element>
+		<element>Delete graphic</element>
+	</idlist>
+</parameter>
+<parameter id="217130388" textid="Extern Parameters" name="Externe Parameter" idvalue="On" size="15">Ein
+	<list>
+		<element>Nur Etik.-Größe</element>
+		<element>Ein</element>
+		<element>Aus</element>
+	</list>
+	<idlist>
+		<element>Only Label Dim.</element>
+		<element>On</element>
+		<element>Off</element>
+	</idlist>
+</parameter>
+<parameter id="217132032" textid="Backfeed Mode" name="Rückzugs-Modus" idvalue="Standard" size="8">Standard
+	<list>
+		<element>Standard</element>
+		<element>Automatisch</element>
+		<element>Kein</element>
+		<element>Optimiert</element>
+	</list>
+	<idlist>
+		<element>Standard</element>
+		<element>Auto</element>
+		<element>None</element>
+		<element>Optim.</element>
+	</idlist>
+</parameter>
+<parameter id="217132848" textid="Auto Backfeed Delay" name="Auto Rückzug Verzögerung" idvalue="0.0" minvalue="0.0" maxvalue="+9.9" size="4">0.0
+</parameter>
+<parameter id="217133676" textid="CMI Length" name="CMI Länge" idvalue="0.0" minvalue="0.0" maxvalue="1.0" size="3">0.0
+</parameter>
+</menu>

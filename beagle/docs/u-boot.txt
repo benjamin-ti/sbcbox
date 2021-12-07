@@ -1,0 +1,13 @@
+git clone -b v2019.04 https://github.com/u-Boot/u-boot . --depth=1
+
+wget -c https://github.com/eewiki/u-boot-patches/raw/master/v2019.04/0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
+wget -c https://github.com/eewiki/u-boot-patches/raw/master/v2019.04/0002-U-Boot-BeagleBone-Cape-Manager.patch
+
+patch -p1 < 0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
+patch -p1 < 0002-U-Boot-BeagleBone-Cape-Manager.patch
+
+source Cross-Platform-Environment
+
+make cv_kurz_defconfig
+
+

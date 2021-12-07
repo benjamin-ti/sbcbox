@@ -1,0 +1,24 @@
+<menu id="92" textid="SensorStatus" name="Sensorstatus">
+<parameter id="217140128" textid="Dispenser photocell status" name="Status Spende-Lichtschranke" idvalue="0" readonly="yes" size="1">0
+	<list>
+		<element>0</element>
+		<element>1</element>
+	</list>
+	<idlist>
+		<element>0</element>
+		<element>1</element>
+	</idlist>
+</parameter>
+<parameter id="217241848" textid="Transmission photocell level" name="Pegel Durchlicht-Lichtschranke" idvalue="3.2" readonly="yes" minvalue="0.0" maxvalue="5.0" size="3">3.2
+</parameter>
+<parameter id="217242648" textid="Transmission photocell min. level" name="Min. Pegel Durchlicht-Lichtschranke" idvalue="1.7" readonly="yes" minvalue="0.0" maxvalue="5.0" size="3">1.7
+</parameter>
+<parameter id="217243452" textid="Transmission photocell max. level" name="Max. Pegel Durchlicht-Lichtschranke" idvalue="3.4" readonly="yes" minvalue="0.0" maxvalue="5.0" size="3">3.4
+</parameter>
+<parameter id="217244256" textid="Transmission photocell threshold level" name="Schaltpegel Durchlicht-Lichtschranke" idvalue="2.2" minvalue="0.0" maxvalue="5.0" size="3">2.2
+</parameter>
+<parameter id="217245068" textid="Transmission photocell PWM" name="PWM Durchlicht-Lichtschranke" idvalue="13" minvalue="1" maxvalue="255" size="3">13
+</parameter>
+<parameter id="217252612" textid="Ribbon Sensor Status" name="Status Transferband-Lichtschranke" idvalue="0" readonly="yes" minvalue="0" maxvalue="3" size="1">0
+</parameter>
+</menu>

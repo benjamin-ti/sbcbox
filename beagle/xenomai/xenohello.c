@@ -5,12 +5,22 @@
 
 #include <alchemy/task.h>
 
+#ifndef CONSUMER
+#define CONSUMER "mygpiod"
+#endif
+
 RT_TASK hello_task;
 
 // function to be executed by task
 void hello_task_func(void *arg)
 {
     RT_TASK_INFO curtaskinfo;
+
+    char *chipname = "gpiochip1";
+    unsigned int line_num = 28; // P9_12 - GPIO_60
+    struct gpiod_chip *chip;
+    struct gpiod_line *line;
+    int i, ret;
 
     rt_printf("Hello World!\n");
 
@@ -19,19 +29,6 @@ void hello_task_func(void *arg)
 
     // print task name
     rt_printf("Task name : %s \n", curtaskinfo.name);
-}
-
-int main(int argc, char *argv[])
-{
-    char  str[10];
-
-    char *chipname = "gpiochip1";
-    unsigned int line_num = 28; // P9_12 - GPIO_60
-    struct gpiod_chip *chip;
-    struct gpiod_line *line;
-    int i, ret;
-
-    rt_printf("Start RT Task\n");
 
     chip = gpiod_chip_open_by_name(chipname);
     if (!chip) {
@@ -45,22 +42,11 @@ int main(int argc, char *argv[])
         goto close_chip;
     }
 
-    sprintf(str, "hello");
-    /* Create task
-     * Arguments: &task,
-     *            name,
-     *            stack size (0=default),
-     *            priority,
-     *            mode (FPU, start suspended, ...)
-     */
-    rt_task_create(&hello_task, str, 0, 50, 0);
-
-    /*  Start task
-     * Arguments: &task,
-     *            task function,
-     *            function argument
-     */
-    rt_task_start(&hello_task, &hello_task_func, 0);
+    ret = gpiod_line_request_output(line, CONSUMER, 0);
+    if (ret < 0) {
+        perror("Request line as output failed\n");
+        goto release_line;
+    }
 
     while(1) {
         ret = gpiod_line_set_value(line, 0);
@@ -82,5 +68,33 @@ release_line:
 close_chip:
     gpiod_chip_close(chip);
 end:
+    return;
+}
+
+int main(int argc, char *argv[])
+{
+    char  str[10];
+
+    rt_printf("Start RT Task\n");
+
+    sprintf(str, "hello");
+    /* Create task
+     * Arguments: &task,
+     *            name,
+     *            stack size (0=default),
+     *            priority,
+     *            mode (FPU, start suspended, ...)
+     */
+    rt_task_create(&hello_task, str, 0, 50, 0);
+
+    /*  Start task
+     * Arguments: &task,
+     *            task function,
+     *            function argument
+     */
+    rt_task_start(&hello_task, &hello_task_func, 0);
+
+    sleep(5);
+
     return 0;
 }

@@ -54,14 +54,86 @@ void hello_task_func(void *arg)
             perror("Request line as output failed\n");
             goto release_line;
         }
-        usleep(500*1000);
+        ret = rt_task_sleep(100000);
+        if (ret < 0) {
+            perror("rt_task_slseep failed\n");
+            goto release_line;
+        }
         ret = gpiod_line_set_value(line, 1);
         if (ret < 0) {
             perror("Request line as output failed\n");
             goto release_line;
         }
-        usleep(500*1000);
+        ret = rt_task_sleep(100000);
+        if (ret < 0) {
+            perror("rt_task_slseep failed\n");
+            goto release_line;
+        }
     }
+
+/*
+    unsigned int time_high_us = 5000;
+    unsigned int time_low_us = 5000;
+    unsigned char duty_cyle_percentage = 50;
+    int print_2high_jitter_gap = 0;
+    unsigned short jitter_gap_border_us = 500;
+
+    int b = 1;
+
+    long long diff_ns;
+    long diff_us;
+
+    struct timespec ts;
+    struct timespec ts2;
+
+    unsigned int time_us = time_low_us;
+
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+
+    while (1)
+    {
+        ts.tv_nsec += time_us * 1000;
+        if(ts.tv_nsec >= 1000*1000*1000){
+            ts.tv_nsec -= 1000*1000*1000;
+            ts.tv_sec++;
+        }
+        clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &ts,  NULL);
+
+        if (b)
+        {
+            if (duty_cyle_percentage > 0) {
+                ret = gpiod_line_set_value(line, 1);
+                if (ret < 0) {
+                    perror("Request line as output failed\n");
+                    goto release_line;
+                }
+                time_us = time_high_us;
+            }
+        }
+        else
+        {
+            if (duty_cyle_percentage < 100) {
+                ret = gpiod_line_set_value(line, 0);
+                if (ret < 0) {
+                    perror("Request line as output failed\n");
+                    goto release_line;
+                }
+                time_us = time_low_us;
+            }
+        }
+        b = !b;
+
+        if (print_2high_jitter_gap) {
+            clock_gettime(CLOCK_MONOTONIC, &ts2);
+            diff_ns = 1000*1000*1000 * (ts2.tv_sec - ts.tv_sec)
+                              + (ts2.tv_nsec - ts.tv_nsec);
+            diff_us = diff_ns / 1000;
+            if (diff_us > jitter_gap_border_us) {
+                rt_printf("CurPWMDiff: %lu us\n", diff_us);
+            }
+        }
+    }
+*/
 
 release_line:
     gpiod_line_release(line);
@@ -94,7 +166,7 @@ int main(int argc, char *argv[])
      */
     rt_task_start(&hello_task, &hello_task_func, 0);
 
-    sleep(5);
+    sleep(60);
 
     return 0;
 }

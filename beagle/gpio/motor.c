@@ -10,15 +10,18 @@
 
 struct gpiod_line *lineCurr;
 
-void* pwmThread(void *argv)
+typedef struct {
+    struct gpiod_line* line;
+    unsigned int time_high_us;
+    unsigned int time_low_us;
+    unsigned char duty_cyle_percentage;
+    int print_2high_jitter_gap;
+    unsigned short jitter_gap_border_us;
+} pwm_args;
+
+void pwm(pwm_args args)
 {
     int ret;
-    unsigned int time_high_us = 10*1000;
-    unsigned int time_low_us = 10*1000;
-    unsigned char duty_cyle_percentage = 50;
-    int print_2high_jitter_gap = 0;
-    unsigned short jitter_gap_border_us = 1000;
-
     int b = 1;
 
     long long diff_ns;
@@ -27,7 +30,7 @@ void* pwmThread(void *argv)
     struct timespec ts;
     struct timespec ts2;
 
-    unsigned int time_us = time_low_us;
+    unsigned int time_us = args.time_low_us;
 
     clock_gettime(CLOCK_MONOTONIC, &ts);
 
@@ -42,38 +45,52 @@ void* pwmThread(void *argv)
 
         if (b)
         {
-            if (duty_cyle_percentage > 0) {
-                ret = gpiod_line_set_value(lineCurr, 1);
+            if (args.duty_cyle_percentage > 0) {
+                ret = gpiod_line_set_value(args.line, 1);
                 if (ret < 0) {
-                    perror("Request lineCurr as output failed\n");
+                    perror("Request line as output failed\n");
                     pthread_exit(NULL);
                 }
-                time_us = time_high_us;
+                time_us = args.time_high_us;
             }
         }
         else
         {
-            if (duty_cyle_percentage < 100) {
-                ret = gpiod_line_set_value(lineCurr, 0);
+            if (args.duty_cyle_percentage < 100) {
+                ret = gpiod_line_set_value(args.line, 0);
                 if (ret < 0) {
-                    perror("Request lineCurr as output failed\n");
+                    perror("Request line as output failed\n");
                     pthread_exit(NULL);
                 }
-                time_us = time_low_us;
+                time_us = args.time_low_us;
             }
         }
         b = !b;
 
-        if (print_2high_jitter_gap) {
+        if (args.print_2high_jitter_gap) {
             clock_gettime(CLOCK_MONOTONIC, &ts2);
             diff_ns = 1000*1000*1000 * (ts2.tv_sec - ts.tv_sec)
                               + (ts2.tv_nsec - ts.tv_nsec);
             diff_us = diff_ns / 1000;
-            if (diff_us > jitter_gap_border_us) {
+            if (diff_us > args.jitter_gap_border_us) {
                 printf("CurPWMDiff: %lu us\n", diff_us);
             }
         }
     }
+}
+
+void* pwmThread(void *argv)
+{
+    pwm_args args;
+
+    args.line = lineCurr;
+    args.time_high_us = 1*1000;
+    args.time_low_us = 1*1000;
+    args.duty_cyle_percentage = 50;
+    args.print_2high_jitter_gap = 1;
+    args.jitter_gap_border_us = 500;
+
+    pwm(args);
 
     pthread_exit(NULL);
 }
@@ -89,6 +106,8 @@ int main(void)
     struct gpiod_chip *chip;
     struct gpiod_line *lineStep;
     int i, ret;
+
+    pwm_args args;
 
     chip = gpiod_chip_open_by_name(chipname);
     if (!chip) {
@@ -143,7 +162,23 @@ int main(void)
         goto release_line;
     }
 
+    ret = sched_setscheduler(0, SCHED_FIFO, &param);
+    if (ret != 0)
+    {
+        perror("sched_setscheduler failed\n");
+        goto release_line;
+    }
 
+    args.line = lineStep;
+    args.time_high_us = 10*1000;
+    args.time_low_us = 10*1000;
+    args.duty_cyle_percentage = 50;
+    args.print_2high_jitter_gap = 0;
+    args.jitter_gap_border_us = 1000;
+
+    pwm(args);
+
+/*
     while(1) {
         ret = gpiod_line_set_value(lineStep, 0);
         if (ret < 0) {
@@ -158,7 +193,7 @@ int main(void)
         }
         usleep(500*1000);
     }
-
+*/
 
 release_line:
     gpiod_line_release(lineCurr);

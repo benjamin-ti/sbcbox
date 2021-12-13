@@ -2,10 +2,16 @@
 #CC=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
 CC=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
 
+include myconfig
+
 all: mkO O/gpioHardcore O/mygpio O/mygpiod O/mygpiodinp O/motor
 
 upload:
-	scp O/mygpiod root@10.102.1.114:~ 
+	sshpass -p temppwd scp O/motor debian@$(BOARDIP):~
+	
+upload-tools:
+	sshpass -p temppwd scp stress.sh debian@$(BOARDIP):~
+	sshpass -p temppwd scp cyclictest.sh debian@$(BOARDIP):~  
 
 O/gpioHardcore: O/gpioHardcore.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -o $@

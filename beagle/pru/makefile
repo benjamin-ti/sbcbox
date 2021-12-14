@@ -54,13 +54,17 @@ OBJECTS1=$(patsubst %,$(GEN_DIR)/%,$(SOURCES1:.c=.obj))
 PROG_NAME2=PRU_RPMsg
 TARGET2=$(GEN_DIR)/$(PROG_NAME2).elf
 MAP2=$(GEN_DIR)/$(PROG_NAME2).map
-SOURCES2=PRU_RPMsg_Echo_Interrupt0.c
+SOURCES2=PRU_RPMsg_Echo_Interrupt1.c
 OBJECTS2=$(patsubst %,$(GEN_DIR)/%,$(SOURCES2:.c=.obj))
 
 all: printStart $(TARGET1) $(TARGET2) printEnd
 
 upload:
-	sshpass -p temppwd scp O/PRU_gpioToggle.elf debian@$(BOARDIP):~
+	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_46_pinmux/state; exit 0"
+	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_44_pinmux/state; exit 0"
+	sshpass -p temppwd ssh debian@$(BOARDIP) "echo stop > /sys/class/remoteproc/remoteproc2/state; exit 0"
+	sshpass -p temppwd scp O/PRU_RPMsg.elf debian@$(BOARDIP):/lib/firmware/am335x-pru1-fw
+	sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"
 
 printStart:
 	@echo ''
@@ -87,7 +91,7 @@ $(TARGET2): $(OBJECTS2) $(LINKER_COMMAND_FILE)
 	@echo ''
 	@echo 'Building target: $@'
 	@echo 'Invoking: PRU Linker'
-	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS2) -m$(MAP1) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
+	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS2) -m$(MAP2) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
 	@echo 'Finished building target: $@'
 
 # Invokes the compiler on all c files in the directory to create the object files

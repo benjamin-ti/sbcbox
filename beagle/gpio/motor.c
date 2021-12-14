@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <unistd.h> // usleep
+#include <fcntl.h>
 #include <signal.h>
+#include <string.h>
 #include <pthread.h>
+#include <dirent.h>
+#include <errno.h>
 #include <sys/mman.h>
 #include <gpiod.h>
 
@@ -9,7 +13,7 @@
 #define CONSUMER "motor"
 #endif
 
-struct gpiod_line *lineCurr;
+static struct gpiod_line *lineCurr = NULL;
 
 typedef struct {
     struct gpiod_line* line;
@@ -20,7 +24,7 @@ typedef struct {
     unsigned short jitter_gap_border_us;
 } pwm_args;
 
-void pwm(pwm_args args)
+static void pwm(pwm_args args)
 {
     int ret;
     int b = 1;
@@ -80,7 +84,7 @@ void pwm(pwm_args args)
     }
 }
 
-void* pwmThread(void *argv)
+static void* pwmThread(void *argv)
 {
     pwm_args args;
 
@@ -96,18 +100,82 @@ void* pwmThread(void *argv)
     pthread_exit(NULL);
 }
 
+static int WriteValue2File(char* pcFile, char* pcValue)
+{
+    int fd;
+    unsigned int uiLen;
+
+    if (NULL==pcFile || NULL==pcValue) {
+        fprintf(stderr, "NULL Pointer error!\n");
+        return -1;
+    }
+
+    fd = open(pcFile, O_WRONLY);
+    if (-1 == fd) {
+        fprintf(stderr, "Failed to open %s!\n", pcFile);
+        return -1;
+    }
+
+    uiLen = strlen(pcValue);
+    if (uiLen != write(fd, pcValue, uiLen)) {
+        fprintf(stderr, "Failed to write value %s in %s!\n", pcValue, pcFile);
+        close(fd);
+        return -1;
+    }
+    close(fd);
+    return 0;
+}
+
+static int WriteValue2FileChecked(char* pcFile, char* pcValue)
+{
+#define READ_VAL_BUF_LEN 20
+    char pcReadVal[READ_VAL_BUF_LEN];
+    int fd;
+    unsigned int uiLen;
+
+    if (NULL==pcFile || NULL==pcValue) {
+        fprintf(stderr, "NULL Pointer error!\n");
+        return -1;
+    }
+
+    fd = open(pcFile, O_RDWR);
+    if (-1 == fd) {
+        fprintf(stderr, "Failed to open %s!\n", pcFile);
+        return -1;
+    }
+
+    uiLen = read(fd, pcReadVal, READ_VAL_BUF_LEN-1);
+    if (uiLen > 0) {
+        printf("ReadVal %u: '%s'\n", uiLen, pcReadVal);
+        if (strcmp(pcReadVal, pcValue) == 0) {
+            close(fd);
+            return 0;
+        }
+    }
+
+    uiLen = strlen(pcValue);
+    if (uiLen != write(fd, pcValue, uiLen)) {
+        fprintf(stderr, "Failed to write value %s in %s!\n", pcValue, pcFile);
+        close(fd);
+        return -1;
+    }
+    close(fd);
+    return 0;
+}
+
 int main(void)
 {
     pthread_t pwm_thread_id;
-    struct sched_param param;
+    struct sched_param paramCurr;
+    struct sched_param paramStep;
 
     char *chipname = "gpiochip2";
     unsigned int line_num_curr = 7;   // LCD_DATA1 / P8_46 / GPIO71
     unsigned int line_num_step = 9;   // LCD_DATA3 / P8_44 / GPIO73
     unsigned int line_num_reset = 12; // LCD_DATA6 / P8_39 / GPIO76
     struct gpiod_chip *chip;
-    struct gpiod_line *lineStep;
-    struct gpiod_line *lineReset;
+    struct gpiod_line *lineStep = NULL;
+    struct gpiod_line *lineReset = NULL;
     int i, ret;
 
     pwm_args args;
@@ -144,6 +212,37 @@ int main(void)
     }
 
     // Init current GPIO
+    int iPWMDirExist = 0;
+    DIR* dir = opendir("/sys/class/pwm/pwmchip7/pwm-7:1/");
+    if (dir) {
+        iPWMDirExist = 1;
+        closedir(dir);
+    } else if (ENOENT == errno) {
+        // Directory does not exist
+    } else {
+        // opendir() failed for some other reason
+    }
+
+    ret = WriteValue2File("/sys/devices/platform/ocp/ocp:P8_46_pinmux/state", "pwm");
+    if (ret < 0) goto release_line;
+    if (!iPWMDirExist) {
+        ret = WriteValue2File("/sys/class/pwm/pwmchip7/export", "1");
+        if (ret < 0) goto release_line;
+    }
+    ret = WriteValue2FileChecked("/sys/class/pwm/pwmchip7/pwm-7:1/enable", "0");
+    if (ret < 0) goto release_line;
+    ret = WriteValue2FileChecked("/sys/class/pwm/pwmchip7/pwm-7:1/duty_cycle", "0");
+    if (ret < 0) goto release_line;
+    ret = WriteValue2File("/sys/class/pwm/pwmchip7/pwm-7:1/period", "4600");
+    if (ret < 0) goto release_line;
+    ret = WriteValue2File("/sys/class/pwm/pwmchip7/pwm-7:1/duty_cycle", "2300");
+    if (ret < 0) goto release_line;
+    ret = WriteValue2File("/sys/class/pwm/pwmchip7/pwm-7:1/enable", "1");
+    if (ret < 0) goto release_line;
+
+/*
+    WriteValue2File("/sys/devices/platform/ocp/ocp:P8_46_pinmux/state", "gpio");
+
     lineCurr = gpiod_chip_get_line(chip, line_num_curr);
     if (!lineCurr) {
         perror("Get lineCurr failed\n");
@@ -156,6 +255,29 @@ int main(void)
         goto release_line;
     }
 
+    // PWM-Current Thread
+    ret = pthread_create(&pwm_thread_id, NULL, pwmThread, 0);
+    if (ret != 0)
+    {
+        perror("pthread_create failed\n");
+        goto release_line;
+    }
+
+    paramCurr.sched_priority = 40;
+    ret = pthread_setschedparam(pwm_thread_id, SCHED_FIFO, &paramCurr);
+    if (ret != 0)
+    {
+        perror("pthread_setschedparam failed\n");
+        goto release_line;
+    }
+
+    ret = pthread_detach(pwm_thread_id);
+    if (ret)
+    {
+        perror("pthread_detach failed\n");
+        goto release_line;
+    }
+*/
     // Init step GPIO
     lineStep = gpiod_chip_get_line(chip, line_num_step);
     if (!lineStep) {
@@ -169,31 +291,9 @@ int main(void)
         goto release_line;
     }
 
-    // PWM-Current Thread
-    ret = pthread_create(&pwm_thread_id, NULL, pwmThread, 0);
-    if (ret != 0)
-    {
-        perror("pthread_create failed\n");
-        goto release_line;
-    }
-
-    param.sched_priority = 40;
-    ret = pthread_setschedparam(pwm_thread_id, SCHED_FIFO, &param);
-    if (ret != 0)
-    {
-        perror("pthread_setschedparam failed\n");
-        goto release_line;
-    }
-
-    ret = pthread_detach(pwm_thread_id);
-    if (ret)
-    {
-        perror("pthread_detach failed\n");
-        goto release_line;
-    }
-
     // Step-"Thread"
-    ret = sched_setscheduler(0, SCHED_FIFO, &param);
+    paramStep.sched_priority = 80;
+    ret = sched_setscheduler(0, SCHED_FIFO, &paramStep);
     if (ret != 0)
     {
         perror("sched_setscheduler failed\n");
@@ -227,9 +327,12 @@ int main(void)
 */
 
 release_line:
-    gpiod_line_release(lineCurr);
-    gpiod_line_release(lineStep);
-    gpiod_line_release(lineReset);
+    if (lineCurr != NULL)
+        gpiod_line_release(lineCurr);
+    if (lineStep != NULL)
+        gpiod_line_release(lineStep);
+    if (lineReset != NULL)
+        gpiod_line_release(lineReset);
 close_chip:
     gpiod_chip_close(chip);
 end:

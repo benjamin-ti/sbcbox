@@ -7,11 +7,6 @@
 # order to use the same Makefile
 #(ARM Linux) ln -s /usr/bin/ /usr/share/ti/cgt-pru/bin
 
-PRU_SDK_DIR=/opt/bbb_pru_sdk
-PRU_CGT=$(PRU_SDK_DIR)/usr/share/ti-cgt-pru
-
-include myconfig
-
 ifndef PRU_CGT
 define ERROR_BODY
 
@@ -32,66 +27,43 @@ endif
 
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 CURRENT_DIR := $(notdir $(patsubst %/,%,$(dir $(MKFILE_PATH))))
-LINKER_COMMAND_FILE=./AM335x_PRU.cmd
-LIBS=--library=lib/rpmsg_lib.lib
+PROJ_NAME=$(CURRENT_DIR)
+INCLUDE=--include_path=../../../include
+GEN_DIR=gen
 
-INCLUDE=--include_path=include --include_path=include/am335x
-STACK_SIZE=0x100
-HEAP_SIZE=0x100
-GEN_DIR=O
-
-#Common compiler and linker flags (Defined in 'PRU Optimizing C/C++ Compiler User's Guide)
+#Common compiler flags (Defined in 'PRU Optimizing C/C++ Compiler User's Guide)
 CFLAGS=-v3 -O2 --display_error_number --endian=little --hardware_mac=on --obj_directory=$(GEN_DIR) --pp_directory=$(GEN_DIR) -ppd -ppa
-#Linker flags (Defined in 'PRU Optimizing C/C++ Compiler User's Guide)
-LFLAGS=--reread_libs --warn_sections --stack_size=$(STACK_SIZE) --heap_size=$(HEAP_SIZE)
 
-PROG_NAME1=PRU_gpioToggle
-TARGET1=$(GEN_DIR)/$(PROG_NAME1).elf
-MAP1=$(GEN_DIR)/$(PROG_NAME1).map
-SOURCES1=PRU_gpioToggle.c
-OBJECTS1=$(patsubst %,$(GEN_DIR)/%,$(SOURCES1:.c=.obj))
+TARGET=$(GEN_DIR)/$(PROJ_NAME).lib
+SOURCES=$(wildcard *.c)
+#Using .object instead of .obj in order to not conflict with the CCS build process
+OBJECTS=$(patsubst %,$(GEN_DIR)/%,$(SOURCES:.c=.object))
 
-PROG_NAME2=PRU_RPMsg
-TARGET2=$(GEN_DIR)/$(PROG_NAME2).elf
-MAP2=$(GEN_DIR)/$(PROG_NAME2).map
-SOURCES2=PRU_RPMsg_Echo_Interrupt0.c
-OBJECTS2=$(patsubst %,$(GEN_DIR)/%,$(SOURCES2:.c=.obj))
-
-all: printStart $(TARGET1) $(TARGET2) printEnd
-
-upload:
-	sshpass -p temppwd scp O/PRU_gpioToggle.elf debian@$(BOARDIP):~
+all: printStart $(TARGET) printEnd
 
 printStart:
 	@echo ''
 	@echo '************************************************************'
-	@echo 'Building project'
+	@echo 'Building project: $(PROJ_NAME)'
 
 printEnd:
 	@echo ''
-	@echo 'Output files can be found in the "$(GEN_DIR)" directory'
-	@echo ''
-	@echo 'Finished building project'
+	@echo 'Finished building project: $(PROJ_NAME)'
 	@echo '************************************************************'
 	@echo ''
 
-# Invokes the linker (-z flag) to make the .out file
-$(TARGET1): $(OBJECTS1) $(LINKER_COMMAND_FILE)
+# Invokes the archiver to make the .lib file
+$(TARGET): $(OBJECTS)
 	@echo ''
 	@echo 'Building target: $@'
-	@echo 'Invoking: PRU Linker'
-	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS1) -m$(MAP1) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
+	@echo 'Invoking: PRU Archiver'
+	$(PRU_CGT)/bin/arpru r $(TARGET) $(OBJECTS)
 	@echo 'Finished building target: $@'
-	
-$(TARGET2): $(OBJECTS2) $(LINKER_COMMAND_FILE)
 	@echo ''
-	@echo 'Building target: $@'
-	@echo 'Invoking: PRU Linker'
-	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS2) -m$(MAP1) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
-	@echo 'Finished building target: $@'
+	@echo 'Output files can be found in the "$(GEN_DIR)" directory'
 
 # Invokes the compiler on all c files in the directory to create the object files
-$(GEN_DIR)/%.obj: %.c
+$(GEN_DIR)/%.object: %.c
 	@mkdir -p $(GEN_DIR)
 	@echo ''
 	@echo 'Building file: $<'
@@ -104,15 +76,15 @@ $(GEN_DIR)/%.obj: %.c
 clean:
 	@echo ''
 	@echo '************************************************************'
-	@echo 'Cleaning project'
+	@echo 'Cleaning project: $(PROJ_NAME)'
 	@echo ''
 	@echo 'Removing files in the "$(GEN_DIR)" directory'
 	@rm -rf $(GEN_DIR)
 	@echo ''
-	@echo 'Finished cleaning project'
+	@echo 'Finished cleaning project: $(PROJ_NAME)'
 	@echo '************************************************************'
 	@echo ''
 
 # Includes the dependencies that the compiler creates (-ppd and -ppa flags)
--include $(OBJECTS1:%.obj=%.pp)
+-include $(OBJECTS:%.object=%.pp)
 

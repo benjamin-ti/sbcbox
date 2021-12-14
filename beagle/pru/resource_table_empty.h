@@ -31,28 +31,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <stdint.h>
-#include <pru_cfg.h>
-#include "resource_table_empty.h"
+/*
+ *  ======== resource_table_empty.h ========
+ *
+ *  Define the resource table entries for all PRU cores. This will be
+ *  incorporated into corresponding base images, and used by the remoteproc
+ *  on the host-side to allocated/reserve resources.  Note the remoteproc
+ *  driver requires that all PRU firmware be built with a resource table.
+ *
+ *  This file contains an empty resource table.  It can be used either as:
+ *
+ *        1) A template, or
+ *        2) As-is if a PRU application does not need to configure PRU_INTC
+ *                  or interact with the rpmsg driver
+ *
+ */
 
-volatile register uint32_t __R30;
-volatile register uint32_t __R31;
+#ifndef _RSC_TABLE_PRU_H_
+#define _RSC_TABLE_PRU_H_
 
-void main(void)
-{
-	volatile uint32_t gpio;
+#include <stddef.h>
+#include <rsc_types.h>
 
-	/* Clear SYSCFG[STANDBY_INIT] to enable OCP master port */
-	CT_CFG.SYSCFG_bit.STANDBY_INIT = 0;
+struct my_resource_table {
+	struct resource_table base;
 
-	/* Toggle GPO pins */
-	/* Note: 0xFFFF_FFFF toggles all GPO pins */
-	gpio = 0xFFFFFFFF;
+	uint32_t offset[1]; /* Should match 'num' in actual definition */
+};
 
-	/* TODO: Create stop condition, else it will toggle indefinitely */
-	while (1) {
-		__R30 ^= gpio;
-		__delay_cycles(100000000);
-	}
-}
+#pragma DATA_SECTION(pru_remoteproc_ResourceTable, ".resource_table")
+#pragma RETAIN(pru_remoteproc_ResourceTable)
+struct my_resource_table pru_remoteproc_ResourceTable = {
+	1,	/* we're the first version that implements this */
+	0,	/* number of entries in the table */
+	0, 0,	/* reserved, must be zero */
+	0,	/* offset[0] */
+};
+
+#endif /* _RSC_TABLE_PRU_H_ */
 

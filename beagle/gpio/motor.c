@@ -211,6 +211,7 @@ int main(void)
         goto release_line;
     }
 
+/*
     // Init current GPIO
     int iPWMDirExist = 0;
     DIR* dir = opendir("/sys/class/pwm/pwmchip7/pwm-7:1/");
@@ -239,8 +240,8 @@ int main(void)
     if (ret < 0) goto release_line;
     ret = WriteValue2File("/sys/class/pwm/pwmchip7/pwm-7:1/enable", "1");
     if (ret < 0) goto release_line;
+*/
 
-/*
     WriteValue2File("/sys/devices/platform/ocp/ocp:P8_46_pinmux/state", "gpio");
 
     lineCurr = gpiod_chip_get_line(chip, line_num_curr);
@@ -277,8 +278,10 @@ int main(void)
         perror("pthread_detach failed\n");
         goto release_line;
     }
-*/
+
     // Init step GPIO
+    WriteValue2File("/sys/devices/platform/ocp/ocp:P8_44_pinmux/state", "gpio");
+
     lineStep = gpiod_chip_get_line(chip, line_num_step);
     if (!lineStep) {
         perror("Get lineStep failed\n");

@@ -57,7 +57,7 @@ MAP2=$(GEN_DIR)/$(PROG_NAME2).map
 SOURCES2=PRU_RPMsg_Echo_Interrupt1.c
 OBJECTS2=$(patsubst %,$(GEN_DIR)/%,$(SOURCES2:.c=.obj))
 
-all: printStart $(TARGET1) $(TARGET2) printEnd
+all: printStart $(TARGET1) $(TARGET2) O/motorpru printEnd
 
 upload:
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_46_pinmux/state; exit 0"
@@ -65,6 +65,7 @@ upload:
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo stop > /sys/class/remoteproc/remoteproc2/state; exit 0"
 	sshpass -p temppwd scp O/PRU_RPMsg.elf debian@$(BOARDIP):/lib/firmware/am335x-pru1-fw
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"
+	sshpass -p temppwd scp O/motorpru debian@$(BOARDIP):~
 
 printStart:
 	@echo ''
@@ -78,6 +79,16 @@ printEnd:
 	@echo 'Finished building project'
 	@echo '************************************************************'
 	@echo ''
+
+# CC_ARM=arm-linux-gnueabihf-gcc -g 
+#CC_ARM=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
+CC_ARM=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
+
+O/motorpru: O/motorpru.o
+	$(CC_ARM) $^ $(LOADLIBES) $(LDLIBS) -lgpiod -lpthread -o $@
+
+O/%.o : %.c
+	$(CC_ARM) -c $< -o $@
 
 # Invokes the linker (-z flag) to make the .out file
 $(TARGET1): $(OBJECTS1) $(LINKER_COMMAND_FILE)

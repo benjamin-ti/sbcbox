@@ -1,0 +1,26 @@
+/dts-v1/;
+/plugin/;
+
+// RAM Ends at 9fdfffff
+
+/ {
+    fragment@0 {
+
+        target-path = "/";
+        __overlay__ {
+
+            reserved-memory {
+                #address-cells = <1>;
+                #size-cells = <1>;
+                ranges;
+
+                motor_reserved: motor_reserved@9ED00000 {
+                    reg = <0x9ED00000 0x01000000>;
+                    no-map;
+                    status = "okay";
+                };
+            };
+
+        };
+    };
+};

@@ -39,6 +39,7 @@
 #include <pru_rpmsg.h>
 #include "resource_table_1.h"
 
+volatile register uint32_t __R30;
 volatile register uint32_t __R31;
 
 /* Host-1 Interrupt sets bit 31 in register R31 */
@@ -65,43 +66,67 @@ volatile register uint32_t __R31;
  */
 #define VIRTIO_CONFIG_S_DRIVER_OK       4
 
+uint8_t payload[RPMSG_MESSAGE_SIZE+1];
+uint8_t send[RPMSG_MESSAGE_SIZE+1];
 
-uint8_t payload[RPMSG_MESSAGE_SIZE];
+uint8_t bRunPWM;
 
 /*
  * main.c
  */
 void main(void)
 {
-        struct pru_rpmsg_transport transport;
-        uint16_t src, dst, len;
-        volatile uint8_t *status;
+    struct pru_rpmsg_transport transport;
+    uint16_t src, dst, len;
+    volatile uint8_t *status;
+    volatile uint32_t gpio;
 
-        /* Allow OCP master port access by the PRU so the PRU can read external memories */
-        CT_CFG.SYSCFG_bit.STANDBY_INIT = 0;
+    volatile uint8_t *ram = 0x9ED00000;
 
-        /* Clear the status of the PRU-ICSS system event that the ARM will use to 'kick' us */
-        CT_INTC.SICR_bit.STS_CLR_IDX = FROM_ARM_HOST;
+    /* Allow OCP master port access by the PRU so the PRU can read external memories */
+    CT_CFG.SYSCFG_bit.STANDBY_INIT = 0;
 
-        /* Make sure the Linux drivers are ready for RPMsg communication */
-        status = &resourceTable.rpmsg_vdev.status;
-        while (!(*status & VIRTIO_CONFIG_S_DRIVER_OK));
+    /* Clear the status of the PRU-ICSS system event that the ARM will use to 'kick' us */
+    CT_INTC.SICR_bit.STS_CLR_IDX = FROM_ARM_HOST;
 
-        /* Initialize the RPMsg transport structure */
-        pru_rpmsg_init(&transport, &resourceTable.rpmsg_vring0, &resourceTable.rpmsg_vring1, TO_ARM_HOST, FROM_ARM_HOST);
+    /* Make sure the Linux drivers are ready for RPMsg communication */
+    status = &resourceTable.rpmsg_vdev.status;
+    while (!(*status & VIRTIO_CONFIG_S_DRIVER_OK));
 
-        /* Create the RPMsg channel between the PRU and ARM user space using the transport structure. */
-        while (pru_rpmsg_channel(RPMSG_NS_CREATE, &transport, CHAN_NAME, CHAN_DESC, CHAN_PORT) != PRU_RPMSG_SUCCESS);
-        while (1) {
-                /* Check bit 31 of register R31 to see if the ARM has kicked us */
-                if (__R31 & HOST_INT) {
-                        /* Clear the event status */
-                        CT_INTC.SICR_bit.STS_CLR_IDX = FROM_ARM_HOST;
-                        /* Receive all available messages, multiple messages can be sent per kick */
-                        while (pru_rpmsg_receive(&transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
-                                /* Echo the message back to the same address from which we just received */
-                                pru_rpmsg_send(&transport, dst, src, payload, len);
-                        }
+    /* Initialize the RPMsg transport structure */
+    pru_rpmsg_init(&transport, &resourceTable.rpmsg_vring0, &resourceTable.rpmsg_vring1, TO_ARM_HOST, FROM_ARM_HOST);
+
+    gpio = 0x0000000A;
+
+    /* Create the RPMsg channel between the PRU and ARM user space using the transport structure. */
+    while (pru_rpmsg_channel(RPMSG_NS_CREATE, &transport, CHAN_NAME, CHAN_DESC, CHAN_PORT) != PRU_RPMSG_SUCCESS);
+    while (1) {
+        /* Check bit 31 of register R31 to see if the ARM has kicked us */
+        if (__R31 & HOST_INT) {
+            /* Clear the event status */
+            CT_INTC.SICR_bit.STS_CLR_IDX = FROM_ARM_HOST;
+            /* Receive all available messages, multiple messages can be sent per kick */
+            while (pru_rpmsg_receive(&transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
+                /* Echo the message back to the same address from which we just received */
+                if (payload[0] == '1') {
+                    bRunPWM = 1;
+                    pru_rpmsg_send(&transport, dst, src, "On\n", 3);
                 }
+
+                if (payload[0] == '0') {
+                    bRunPWM = 0;
+                    pru_rpmsg_send(&transport, dst, src, "Off\n", 4);
+                }
+
+                if (*ram == 'A') {
+                    pru_rpmsg_send(&transport, dst, src, "YES\n", 4);
+                }
+            }
         }
+
+        if (bRunPWM) {
+            __R30 ^= gpio;
+            __delay_cycles(100000);
+        }
+    }
 }

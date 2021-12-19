@@ -1,12 +1,15 @@
 #include <linux/module.h>
 
-int init_module(void)
+int kmhello_init(void)
 {
     printk("init_module\n");
     return 0;
 }
 
-void cleanup_module(void)
+void kmhello_cleanup(void)
 {
     printk("cleanup_module\n");
 }
+
+module_init(kmhello_init);
+module_exit(kmhello_cleanup);

@@ -7,7 +7,42 @@ patch -p1 < 0001-am335x_evm-uEnv.txt-bootz-n-fixes.patch
 patch -p1 < 0002-U-Boot-BeagleBone-Cape-Manager.patch
 
 source Cross-Platform-Environment
+oder
+export ARCH=arm
+export CROSS_COMPILE=arm-linux-gnueabihf-
 
 make cv_kurz_defconfig
 
+TFTP:
+------
 
+Umstellen der TFTP IP-Adresse:
+env set serverip <IPADDRESS>
+
+U-Boot Boot Sequence:
+---------------------
+
+start.S: Execution typically starts start.S file, such as:
+arch/arm/cpu/armv8/start.S
+
+lowlevel_init(): Init HW
+arch/arm/cpu/armv8/lowlevel_init.S
+
+board_init_f(): Init SDRAM and UART
+arch/arm/mach-omap2/am33xx/board.c
+
+board_init_r(): Run callback table init_sequence_r
+common/board_r.c
+init_sequence_r ->  board_init()
+
+board_init()
+board/ti/am335x/board.c
+
+Environment: Makro BOOTENV
+Wird in include/configs/am335x_evm.h gesetzt
+Kann in der Config-Datei oder auch im Code noch erweitert werden
+
+SVN Erstellen:
+svnadmin create ../delmesvnrepos
+svn checkout file:///home/user/temp/delmesvnrepos/ .
+svn add . --force

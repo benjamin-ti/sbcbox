@@ -13,3 +13,6 @@ make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_cvoctavo_defcon
 echo "# $0" > current_config.sh
 echo "make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_cvoctavo_defconfig -C ../buildroot-2020.02.8/ O=$(pwd) defconfig" >> current_config.sh
 chmod +x current_config.sh
+
+echo "sudo dd if=images/sdcard.img of=/dev/sdb status=progress bs=1MB" > mkcard_sdb.sh
+chmod +x mkcard_sdb.sh

@@ -16,8 +16,10 @@ make cv_kurz_defconfig
 TFTP:
 ------
 
-Umstellen der TFTP IP-Adresse:
+Change of TFTP-Server IP-Adresse:
 env set serverip <IPADDRESS>
+env set bootfile <BOOTFILE i.e. boot.scr or zImage>
+dhcp # loads bootfile from serverip
 
 U-Boot Boot Sequence:
 ---------------------
@@ -39,8 +41,14 @@ board_init()
 board/ti/am335x/board.c
 
 Environment: Makro BOOTENV
-Wird in include/configs/am335x_evm.h gesetzt
-Kann in der Config-Datei oder auch im Code noch erweitert werden
+Set in include/configs/am335x_evm.h
+Env can be extended in config-file or in source code
+
+After waiting for user reaction content of bootcmd is executed
+
+bootcmd in am335x_evm.h (extended with environment/ti/mmc.h)
+tries to load boot.scr. If that is successful only boot.scr is executet.
+If no boot.scr then it tries to load uEnv.txt and tries to boot linux
 
 SVN Erstellen:
 svnadmin create ../delmesvnrepos

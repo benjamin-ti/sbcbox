@@ -9,3 +9,10 @@
 # ../bbbrcfg/init.sh
 
 make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_xenomai_defconfig -C ../buildroot-2021.05.3/ O=$(pwd) defconfig
+
+echo "# $0" > current_config.sh
+echo "make BR2_EXTERNAL=../bbbrcfg BR2_DEFCONFIG=../bbbrcfg/config/bbb_xenomai_defconfig -C ../buildroot-2021.05.3/ O=$(pwd) defconfig" >> current_config.sh
+chmod +x current_config.sh
+
+echo "sudo dd if=images/sdcard.img of=/dev/sdb status=progress bs=1MB" > mkcard_sdb.sh
+chmod +x mkcard_sdb.sh

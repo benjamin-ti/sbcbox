@@ -1,3 +1,11 @@
+# 1. Install ti-processor-sdk-linux-am57xx-evm-06.03.00.106-Linux-x86-Install.bin
+#    -> /home/user/ti/processor-sdk-linux-am57xx-evm-06.03.00.106
+# 2. Install processor_sdk_rtos_am57xx_06_03_02_08-linux-x64-installer.run
+#    -> /home/user/ti
+# Then you are able to compile ipc_ex02_messageq
+# I used Debian Buster IoT TIDL Image 2020-04-06
+# But had to downgrade to kernel 4.14.108-ti-r131
+
 # make ipu-examples:
 # export TI_RTOS_PATH=/home/user/ti/processor_sdk_rtos_am57xx_06_03_02_08/
 # make ti-ipc-linux

@@ -1,1 +1,6 @@
 https://www.digikey.com/eewiki/display/linuxonarm/BeagleBone+Black
+
+https://github.com/beagleboard/beaglebone-black/wiki/System-Reference-Manual
+
+https://github.com/beagleboard/beaglebone-ai/wiki/System-Reference-Manual
+

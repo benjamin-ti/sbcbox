@@ -1,0 +1,13 @@
+Update Kernel in Debian Beagle IoT:
+sudo /opt/scripts/tools/update_kernel.sh --ti-kernel # Just lists the kernels
+or
+sudo /opt/scripts/tools/update_kernel.sh --ti-rt-kernel # Just lists the kernels
+or
+sudo /opt/scripts/tools/update_kernel.sh --ti-xenomai-kernel # Just lists the kernels
+if
+    ERROR: The certificate of 'rcn-ee.com' is not trusted.
+    ERROR: The certificate of 'rcn-ee.com' has expired.
+then
+    sudo apt update ; sudo apt install --only-upgrade libgnutls30
+    or make sure to keep your software up-to date:
+    sudo apt update ; sudo apt upgrade

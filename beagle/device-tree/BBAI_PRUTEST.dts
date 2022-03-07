@@ -1,0 +1,40 @@
+// SPDX-License-Identifier: GPL-2.0-only
+/*
+ * Copyright (C) 2019 Robert Nelson <robertcnelson@gmail.com>
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/dra.h>
+
+/*
+ * Helper to show loaded overlays under: /proc/device-tree/chosen/overlays/
+ */
+&{/chosen} {
+	overlays {
+		BBAI_TEMPLATE.bb.org-overlays = __TIMESTAMP__;
+	};
+};
+
+/ {
+	fragment@1 {
+		target = <&dra7_pmx_core>;
+		__overlay__ {
+			cape_pins_default: cape_pins_default {
+				pinctrl-single,pins = <
+
+					/*
+					 * Comment out only Pins you are actively using:
+					 */
+					
+				    DRA7XX_CORE_IOPAD(0x35E0, MUX_MODE13) /* G10: P8.46a: vout1_d1.off */
+					DRA7XX_CORE_IOPAD(0x3638, MUX_MODE13) /* A10: P8.46b: vout1_d23.off */
+					DRA7XX_CORE_IOPAD(0x35E8, MUX_MODE13) /* G11: P8.44: vout1_d3.off */
+				>;
+			};
+		};
+	};
+};

@@ -25,17 +25,36 @@ help()
     echo "    make"
     echo "-h: help"
     echo "-b: load boot-script over tftp"
+    echo "-d: [bbb,bbb-bt,bbb-4DCap-bt,osdred,osdred-4DCap-bt]"
     exit
 }
 
 bootftp=0
-while getopts hb flag
+while getopts hbd: flag
 do
     case "${flag}" in
         h) help;;
         b) bootftp=1;;
+        d) dtb=${OPTARG};;
     esac
 done
+
+if [ "$dtb" = "bbb-bt" ]; then
+	echo "Using am335x-boneblack-bt.dtb"
+	echo "export BENSBBB_DTB=am335x-boneblack-bt.dtb" > script_config.sh
+fi
+if [ "$dtb" = "bbb-4DCap-bt" ]; then
+	echo "Using am335x-boneblack-4DCap-bt.dtb"
+	echo "export BENSBBB_DTB=am335x-boneblack-4DCap-bt.dtb" > script_config.sh
+fi
+if [ "$dtb" = "osdred" ]; then
+	echo "Using am335x-osd3358-sm-red.dtb"
+	echo "export BENSBBB_DTB=am335x-osd3358-sm-red.dtb" > script_config.sh
+fi
+if [ "$dtb" = "osdred-4DCap-bt" ]; then
+	echo "Using am335x-boneblack-4DCap-bt-osdred.dtb"
+	echo "export BENSBBB_DTB=am335x-boneblack-4DCap-bt-osdred.dtb" > script_config.sh
+fi
 
 if [ "$bootftp" -eq "1" ]; then
 #gawk '{ if (/BR2_TARGET_UBOOT_SPL_NAME/) {printf("%s\nBR2_TARGET_UBOOT_BOOT_SCRIPT=y\nBR2_TARGET_UBOOT_BOOT_SCRIPT_SOURCE=\"$(BR2_EXTERNAL_BENSBBB_PATH)/board/beaglebone/boot.cmd\"\n", $0);} else {print($0);} }' $brcfg_dir/config/$defcfg > $brcfg_dir/config/new_$defcfg

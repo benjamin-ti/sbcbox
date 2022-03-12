@@ -1,0 +1,53 @@
+Index: linux/linux.mk
+===================================================================
+--- linux/linux.mk	(Revision 1479)
++++ linux/linux.mk	(Revision 1462)
+@@ -127,21 +127,6 @@
+ LINUX_EXTRA_DOWNLOADS += $(ARCH_XTENSA_OVERLAY_URL)
+ endif
+ 
+-define LINUX_CREATE_SVN_REPOS
+-    if [ -n "$$CREATE_SVN_REPOS" ]; then \
+-	echo "Hack by BTisler: Make a local svn-repository for better patch creating!"; cd $(@D); ls; \
+-	LINUXSVNPATH=$$(realpath ../linux-svn); \
+-	rm -rf ../linux-svn; svnadmin create $$LINUXSVNPATH; \
+-	svn checkout file:///$$LINUXSVNPATH .; \
+-	svn add . --force > /dev/null; \
+-	svn commit . -m "Import existing codebase"; \
+-	printf ".*\nmodules.builtin\nmodules.order\n.*" > ignore.txt; \
+-	svn propset svn:global-ignores -F ignore.txt .; \
+-	fi
+-endef
+-LINUX_POST_EXTRACT_HOOKS += LINUX_CREATE_SVN_REPOS
+-LINUX_POST_RSYNC_HOOKS += LINUX_CREATE_SVN_REPOS
+-
+ # We don't want to run depmod after installing the kernel. It's done in a
+ # target-finalize hook, to encompass modules installed by packages.
+ LINUX_MAKE_FLAGS = \
+
+Index: boot/uboot/uboot.mk
+===================================================================
+--- boot/uboot/uboot.mk	(Revision 1479)
++++ boot/uboot/uboot.mk	(Revision 1462)
+@@ -195,21 +195,6 @@
+ UBOOT_EXTRA_DOWNLOADS += $(ARCH_XTENSA_OVERLAY_URL)
+ endif
+ 
+-define UBOOT_CREATE_SVN_REPOS
+-    if [ -n "$$CREATE_SVN_REPOS" ]; then \
+-	echo "Hack by BTisler: Make a local svn-repository for better patch creating!"; cd $(@D); ls; \
+-	UBOOTSVNPATH=$$(realpath ../uboot-svn); \
+-	rm -rf ../uboot-svn; svnadmin create $$UBOOTSVNPATH; \
+-	svn checkout file:///$$UBOOTSVNPATH .; \
+-	svn add . --force > /dev/null; \
+-	svn commit . -m "Import existing codebase"; \
+-	printf ".*\n*.su\n" > ignore.txt; \
+-	svn propset svn:global-ignores -F ignore.txt .; \
+-	fi
+-endef
+-UBOOT_POST_EXTRACT_HOOKS += UBOOT_CREATE_SVN_REPOS
+-UBOOT_POST_RSYNC_HOOKS += UBOOT_CREATE_SVN_REPOS
+-
+ # Analogous code exists in linux/linux.mk. Basically, the generic
+ # package infrastructure handles downloading and applying remote
+ # patches. Local patches are handled depending on whether they are

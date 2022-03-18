@@ -1,0 +1,49 @@
+diff --color -rupN uboot-2019.04.a/board/ti/am335x/board.c uboot-2019.04.b/board/ti/am335x/board.c
+--- uboot-2019.04.a/board/ti/am335x/board.c	2020-12-16 17:22:00.899984800 +0100
++++ uboot-2019.04.b/board/ti/am335x/board.c	2020-12-16 19:07:23.085792798 +0100
+@@ -794,9 +794,8 @@ PRE1("vor ifdef CONFIG_SPL_ENV_SUPPORT\n
+ 	const char* checkBootCmd = env_get("bootcmd");
+ 	PRE("checkBootCmd vor set_default_env(): '%s'\n", checkBootCmd);
+ 	set_default_env(NULL, 0);
+-	PRE("res of env_save: %d\n", res);
+ 	checkBootCmd = env_get("bootcmd");
+-	PRE("checkBootCmd nach env_save(): '%s'\n", checkBootCmd);
++	PRE("checkBootCmd nach set_default_env(): '%s'\n", checkBootCmd);
+ 	res = eeprom_bootcount_set(0);
+ 	if (res) {
+ 		PRE("eeprom_boot_count_set: res=%d\n", res);
+@@ -1602,15 +1601,15 @@ int board_init(void)
+ 					if (res) {
+ 						PRE("env_set for my_fallback_allowed: %d\n", res);
+ 					}
+-					res = env_save();
+-					if (res) {
+-						PRE("env_save(): %d\n", res);
+-					}
+ 				} else {
+ 					PRE1("boot limit erreicht, aber fallback nicht moeglich. Wir sind am ENDE! ;-)\n");
+ 				}
+ 
+-				// TODO
++				int res = env_save();
++				if (res) {
++					PRE("env_save(): %d\n", res);
++				}
++
+ 			}
+ 		}
+ 	}
+diff --color -rupN uboot-2019.04.a/include/PR.h uboot-2019.04.b/include/PR.h
+--- uboot-2019.04.a/include/PR.h	2020-12-16 17:22:00.903984823 +0100
++++ uboot-2019.04.b/include/PR.h	2020-12-16 19:07:43.693871535 +0100
+@@ -11,8 +11,8 @@
+ 
+ // preitinger abk fuer debugging
+ #if 1
+-#define PRE1(x) printf("preitinger(1): %s:%s() - " x, __FILE__, __func__)
+-#define PRE(x, ...) printf("preitinger(1): %s:%s() - " x, __FILE__, __func__, __VA_ARGS__)
++#define PRE1(x) printf("preitinger(2): %s:%s() - " x, __FILE__, __func__)
++#define PRE(x, ...) printf("preitinger(2): %s:%s() - " x, __FILE__, __func__, __VA_ARGS__)
+ #else
+ #define PRE1(x)
+ #define PRE(x, ...)

@@ -63,6 +63,7 @@ Int main(Int argc, Char* argv[])
     Task_Params     taskParams;
 
     Log_print0(Diags_ENTRY, "--> main:");
+    Log_info0("hello world");
 
     /* must initialize the error block before using it */
     Error_init(&eb);

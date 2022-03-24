@@ -1,0 +1,5 @@
+config BR2_PACKAGE_QTHELLO
+    bool "QtHello"
+    depends on BR2_PACKAGE_QT5
+    help
+        This is a most simple Qt application

@@ -1,0 +1,15 @@
+### Eclipse Workspace Patch 1.0
+#P bbb-my-linux
+Index: scripts/setlocalversion
+===================================================================
+--- a/scripts/setlocalversion	(revision 1)
++++ b/scripts/setlocalversion	(working copy)
+@@ -31,6 +31,8 @@
+
+ scm_version()
+ {
++	return
++
+ 	local short
+ 	short=false
+

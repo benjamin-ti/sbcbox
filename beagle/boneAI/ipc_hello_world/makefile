@@ -37,7 +37,7 @@
 EXBASE = .
 include $(EXBASE)/products.mak
 
-srcs = hello.c
+srcs = hello.c GPIO_evmAM572x_board.c GPIO_soc.c
 objs = $(addprefix bin/$(PROFILE)/obj/,$(patsubst %.c,%.oem4,$(srcs)))
 CONFIG = bin/$(PROFILE)/configuro
 
@@ -52,7 +52,8 @@ endif
 
 .PRECIOUS: %/compiler.opt %/linker.cmd
 
-all: debug release
+# all: debug release
+all: release
 
 
 debug:
@@ -125,7 +126,7 @@ CC = $(CGTOOLS)/bin/armcl -c
 LD = $(CGTOOLS)/bin/armcl -z
 
 CPPFLAGS =
-CFLAGS = -qq -pdsw225 -ppd=$@.dep -ppa $(CCPROFILE_$(PROFILE)) -@$(CONFIG)/compiler.opt -I.
+CFLAGS = -qq -pdsw225 -ppd=$@.dep -ppa $(CCPROFILE_$(PROFILE)) -DSOC_AM572x -@$(CONFIG)/compiler.opt -I.
 
 # entry point is set to an aligned address so that IPC can load the slave
 LDFLAGS = -w -q -u _c_int00 -c -m $(@D)/obj/$(@F).map
@@ -165,6 +166,9 @@ BOARDIP=10.102.1.181
 upload:
 	# sshpass -p temppwd ssh debian@$(BOARDIP) "echo stop > /sys/class/remoteproc/remoteproc2/state; exit 0"
 	sshpass -p temppwd scp bin/release/hello.xem4 debian@$(BOARDIP):~
+	sshpass -p temppwd scp start.sh debian@$(BOARDIP):~
+	sshpass -p temppwd scp trace.sh debian@$(BOARDIP):~
+	sshpass -p temppwd ssh debian@$(BOARDIP) "chmod +x start.sh; chmod +x trace.sh"
 	# sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"
 	# sshpass -p temppwd scp O/motorpru debian@$(BOARDIP):~
 

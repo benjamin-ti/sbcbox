@@ -1,0 +1,130 @@
+diff --color -rupN uboot.a/board/ti/am335x/board.c uboot.b/board/ti/am335x/board.c
+--- uboot.a/board/ti/am335x/board.c	2021-01-18 15:30:23.816013509 +0100
++++ uboot.b/board/ti/am335x/board.c	2021-01-18 15:50:52.111895120 +0100
+@@ -748,9 +748,9 @@ int spl_start_uboot(void)
+ 
+ 
+ #if 1 //def ORIG_SRC
+-	printf("preitinger: spl_start_uboot start\n");
++	PRE1("preitinger: spl_start_uboot start\n");
+ # ifdef CONFIG_SPL_SERIAL_SUPPORT
+-	printf("preitinger: in ifdef 1?\n");
++	PRE1("preitinger: in ifdef 1?\n");
+ 	/* break into full u-boot on 'c' */
+ 	if (serial_tstc() && serial_getc() == 'c') {
+ 		res = eeprom_bootcount_set(0);
+@@ -763,7 +763,7 @@ int spl_start_uboot(void)
+ # endif
+ PRE1("vor ifdef CONFIG_SPL_ENV_SUPPORT\n");
+ # ifdef CONFIG_SPL_ENV_SUPPORT
+-	printf("preitinger: in ifdef 2?\n");
++	PRE1("preitinger: in ifdef 2?\n");
+ 	res = env_init();
+ 	PRE("res of env_init: %d\n", res);
+ 	res = env_load();
+@@ -804,7 +804,7 @@ PRE1("vor ifdef CONFIG_SPL_ENV_SUPPORT\n
+ #endif
+ 	int preitinger_res = env_get_yesno("boot_os");
+ 	if (env_get_yesno("boot_os") != 1) {
+-		printf("preitinger: return 1 wegen boot_os?! - wert: %d\n", preitinger_res);
++		PRE("preitinger: return 1 wegen boot_os?! - wert: %d\n", preitinger_res);
+ 		res = eeprom_bootcount_set(0);
+ 		if (res) {
+ 			PRE("eeprom_boot_count_set: res=%d\n", res);
+@@ -839,7 +839,7 @@ PRE1("vor ifdef CONFIG_SPL_ENV_SUPPORT\n
+ 		}
+ 	}
+ # endif
+-	printf("preitinger:spl_start_uboot returning 0\n");
++	PRE1("preitinger:spl_start_uboot returning 0\n");
+ 
+ #else
+ 
+@@ -847,7 +847,7 @@ PRE1("vor ifdef CONFIG_SPL_ENV_SUPPORT\n
+ 	PRE1("in ifdef CONFIG_SPL_SERIAL_SUPPORT\n");
+ 	/* break into full u-boot on 'c' */
+ 	if (serial_tstc() && serial_getc() == 'c') {
+-		printf("preitinger: 1 wegen 'c'\n");
++		PRE1("preitinger: 1 wegen 'c'\n");
+ 		return 1;
+ 	}
+ # endif
+@@ -2014,5 +2014,5 @@ U_BOOT_DEVICE(am335x_mmc1) = {
+ 
+ void spl_board_prepare_for_linux(void)
+ {
+-	printf("preitinger: spl_board_prepare_for_linux\n");
++	PRE1("preitinger: spl_board_prepare_for_linux\n");
+ }
+diff --color -rupN uboot.a/common/spl/spl.c uboot.b/common/spl/spl.c
+--- uboot.a/common/spl/spl.c	2021-01-18 15:30:23.804013459 +0100
++++ uboot.b/common/spl/spl.c	2021-01-18 15:47:13.860465184 +0100
+@@ -530,7 +530,7 @@ static int spl_load_image(struct spl_ima
+ 
+ 	ret = loader->load_image(spl_image, &bootdev);
+ #ifdef CONFIG_SPL_LEGACY_IMAGE_CRC_CHECK
+-	printf("preitinger: ifdef CONFIG_SPL_LEGACY_IMAGE_CRC_CHECK\n");
++	PRE1("preitinger: ifdef CONFIG_SPL_LEGACY_IMAGE_CRC_CHECK\n");
+ 	if (!ret && spl_image->dcrc_length) {
+ 		/* check data crc */
+ 		ulong dcrc = crc32_wd(0, (unsigned char *)spl_image->dcrc_data,
+@@ -541,7 +541,7 @@ static int spl_load_image(struct spl_ima
+ 		}
+ 	}
+ #endif
+-	printf("preitinger: spl_load_image: ret=%d\n", ret);
++	PRE("preitinger: spl_load_image: ret=%d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -561,7 +561,7 @@ static int boot_from_devices(struct spl_
+ 	printf("preitinger: boot_from_devices: count=%d\n", count);
+ 
+ 	for (i = 0; i < count && spl_boot_list[i] != BOOT_DEVICE_NONE; i++) {
+-		printf("preitinger: boot_from_devices: i=%d\n", i);
++		PRE("preitinger: boot_from_devices: i=%d\n", i);
+ //		if (i == 0) {
+ //			printf("preitinger: ueberspringe i==%d\n", i);
+ //			continue;
+@@ -577,7 +577,7 @@ static int boot_from_devices(struct spl_
+ #endif
+ 		if (loader && !spl_load_image(spl_image, loader)) {
+ 			spl_image->boot_device = spl_boot_list[i];
+-			printf("preitinger: return 0 when i=%d\n", i);
++			PRE("preitinger: return 0 when i=%d\n", i);
+ 			return 0;
+ 		}
+ 	}
+diff --color -rupN uboot.a/common/spl/spl_mmc.c uboot.b/common/spl/spl_mmc.c
+--- uboot.a/common/spl/spl_mmc.c	2021-01-18 15:30:23.804013459 +0100
++++ uboot.b/common/spl/spl_mmc.c	2021-01-18 15:45:07.683894668 +0100
+@@ -60,7 +60,7 @@ int mmc_load_image_raw_sector(struct spl
+ 	struct image_header *header;
+ 	struct blk_desc *bd = mmc_get_blk_desc(mmc);
+ 	int ret = 0;
+-	printf("preitinger: mmc_load_image_raw_sector\n");
++	PRE1("preitinger: mmc_load_image_raw_sector\n");
+ 
+ 
+ 	header = spl_get_load_buffer(-sizeof(*header), bd->blksz);
+@@ -101,7 +101,7 @@ end:
+ 
+ static int spl_mmc_get_device_index(u32 boot_device)
+ {
+-	printf("preitinger: spl_mmc_get_device_index\n");
++	PRE1("preitinger: spl_mmc_get_device_index\n");
+ 	switch (boot_device) {
+ 	case BOOT_DEVICE_MMC1:
+ 		return 0;
+diff --color -rupN uboot.a/include/PR.h uboot.b/include/PR.h
+--- uboot.a/include/PR.h	2021-01-18 15:30:23.816013509 +0100
++++ uboot.b/include/PR.h	2021-01-18 15:32:18.468497232 +0100
+@@ -10,7 +10,7 @@
+ 
+ 
+ // preitinger abk fuer debugging
+-#if 1
++#if 0
+ #define PRE1(x) printf("preitinger(2): %s:%s() - " x, __FILE__, __func__)
+ #define PRE(x, ...) printf("preitinger(2): %s:%s() - " x, __FILE__, __func__, __VA_ARGS__)
+ #else

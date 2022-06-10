@@ -1,0 +1,30 @@
+diff --color -upr u-boot-2019.04_patched/env/nand.c u-boot-2019.04_only-nand/env/nand.c
+--- u-boot-2019.04_patched/env/nand.c	2019-04-09 03:40:40.000000000 +0200
++++ u-boot-2019.04_only-nand/env/nand.c	2020-12-09 12:27:33.920427357 +0100
+@@ -23,12 +23,26 @@
+ #include <search.h>
+ #include <errno.h>
+ 
++#if 0 // orig
+ #if defined(CONFIG_CMD_SAVEENV) && defined(CONFIG_CMD_NAND) && \
+ 		!defined(CONFIG_SPL_BUILD)
+ #define CMD_SAVEENV
+ #elif defined(CONFIG_ENV_OFFSET_REDUND)
+ #error CONFIG_ENV_OFFSET_REDUND must have CONFIG_CMD_SAVEENV & CONFIG_CMD_NAND
+ #endif
++#else // preitinger:
++
++#if !defined(CONFIG_SPL_BUILD)
++
++#if defined(CONFIG_CMD_SAVEENV) && defined(CONFIG_CMD_NAND)
++#define CMD_SAVEENV
++#elif defined(CONFIG_ENV_OFFSET_REDUND)
++#error CONFIG_ENV_OFFSET_REDUND must have CONFIG_CMD_SAVEENV & CONFIG_CMD_NAND
++#endif
++
++#endif
++
++#endif // preitinger
+ 
+ #if defined(CONFIG_ENV_SIZE_REDUND) &&	\
+ 	(CONFIG_ENV_SIZE_REDUND != CONFIG_ENV_SIZE)

@@ -34,12 +34,15 @@
 #  ======== makefile ========
 #
 
-EXBASE = .
-include $(EXBASE)/products.mak
+EXBASE = ..
+OUTP=$(EXBASE)/O/ipu1
 
-srcs = hello.c GPIO_evmAM572x_board.c GPIO_soc.c
-objs = $(addprefix bin/$(PROFILE)/obj/,$(patsubst %.c,%.oem4,$(srcs)))
-CONFIG = bin/$(PROFILE)/configuro
+include $(EXBASE)/products.mak
+-include $(EXBASE)/myconfig
+
+srcs = main_ipu1.c
+objs = $(addprefix $(OUTP)/$(PROFILE)/obj/,$(patsubst %.c,%.oem4,$(srcs)))
+CONFIG = $(OUTP)/$(PROFILE)/configuro
 
 PKGPATH := $(BIOS_INSTALL_DIR)/packages
 PKGPATH := $(PKGPATH)+$(IPC_INSTALL_DIR)/packages
@@ -48,34 +51,32 @@ ifneq ($(PDK_INSTALL_DIR),)
 PKGPATH := $(PKGPATH)+$(PDK_INSTALL_DIR)/packages
 endif
 
--include $(addprefix bin/$(PROFILE)/obj/,$(patsubst %.c,%.oem4.dep,$(srcs)))
+-include $(addprefix $(OUTP)/$(PROFILE)/obj/,$(patsubst %.c,%.oem4.dep,$(srcs)))
 
 .PRECIOUS: %/compiler.opt %/linker.cmd
 
-# all: debug release
-all: release
-
+all: debug release
 
 debug:
-	$(MAKE) PROFILE=debug PROCLIST="$(PROCLIST)" hello.x
+	$(MAKE) PROFILE=debug PROCLIST="$(PROCLIST)" main_ipu1.x
 
 release:
-	$(MAKE) PROFILE=release PROCLIST="$(PROCLIST)" hello.x
+	$(MAKE) PROFILE=release PROCLIST="$(PROCLIST)" main_ipu1.x
 
-hello.x: bin/$(PROFILE)/hello.xem4
-bin/$(PROFILE)/hello.xem4: $(objs) $(libs) $(CONFIG)/linker.cmd
+main_ipu1.x: $(OUTP)/$(PROFILE)/ipcmotor.xem4
+$(OUTP)/$(PROFILE)/ipcmotor.xem4: $(objs) $(libs) $(CONFIG)/linker.cmd
 	@$(ECHO) "#"
 	@$(ECHO) "# Making $@ ..."
 	$(LD) $(LDFLAGS) -o $@ $(objs) \
             $(addprefix -l ,$(libs)) $(CONFIG)/linker.cmd $(LDLIBS)
 
-bin/$(PROFILE)/obj/%.oem4: %.c $(CONFIG)/compiler.opt
+$(OUTP)/$(PROFILE)/obj/%.oem4: %.c $(CONFIG)/compiler.opt
 	@$(ECHO) "#"
 	@$(ECHO) "# Making $@ ..."
 	$(CC) $(CPPFLAGS) $(CFLAGS) --output_file=$@ -fc $<
 
 %/linker.cmd %/compiler.opt: $(CONFIG)/.config ;
-$(CONFIG)/.config: Ipu1.cfg shared/config.bld
+$(CONFIG)/.config: Ipu1.cfg $(EXBASE)/shared/config.bld
 	@$(ECHO) "#"
 	@$(ECHO) "# Making $@ ..."
 	$(XDC_INSTALL_DIR)/xs --xdcpath="$(subst +,;,$(PKGPATH));." \
@@ -83,34 +84,18 @@ $(CONFIG)/.config: Ipu1.cfg shared/config.bld
             -t ti.targets.arm.elf.M4 \
             -c $(ti.targets.arm.elf.M4) \
             -p ti.platforms.evmDRA7XX:ipu1 \
-            -b shared/config.bld \
+            -b $(EXBASE)/shared/config.bld \
             -r $(PROFILE) \
-            --cfgArgs "{ configBld: \"shared/config.bld\" }" \
+            --cfgArgs "{ configBld: \"$(EXBASE)/shared/config.bld\" }" \
             Ipu1.cfg
 	@$(ECHO) "" > $@
-
-install:
-	@$(ECHO) "#"
-	@$(ECHO) "# Making $@ ..."
-	@$(MKDIR) $(EXEC_DIR)/debug
-	$(CP) bin/debug/hello.xem4 $(EXEC_DIR)/debug
-	@$(MKDIR) $(EXEC_DIR)/release
-	$(CP) bin/release/hello.xem4 $(EXEC_DIR)/release
-
-install_rov:
-	@$(ECHO) "#"
-	@$(ECHO) "# Making $@ ..."
-	@$(MKDIR) $(EXEC_DIR)/debug
-	$(CP) bin/debug/configuro/package/cfg/Ipu1_pem4.rov.xs $(EXEC_DIR)/debug
-	@$(MKDIR) $(EXEC_DIR)/release
-	$(CP) bin/release/configuro/package/cfg/Ipu1_pem4.rov.xs $(EXEC_DIR)/release
 
 help:
 	@$(ECHO) "make                   # build executable"
 	@$(ECHO) "make clean             # clean everything"
 
 clean::
-	$(RMDIR) bin
+	$(RMDIR) $(OUTP)
 
 #  ======== install validation ========
 ifeq (install,$(MAKECMDGOALS))
@@ -155,8 +140,8 @@ endif
 #  ======== create output directories ========
 ifneq (clean,$(MAKECMDGOALS))
 ifneq (,$(PROFILE))
-ifeq (,$(wildcard bin/$(PROFILE)/obj))
-    $(shell $(MKDIR) -p bin/$(PROFILE)/obj)
+ifeq (,$(wildcard $(OUTP)/$(PROFILE)/obj))
+    $(shell $(MKDIR) -p $(OUTP)/$(PROFILE)/obj)
 endif
 endif
 endif
@@ -164,12 +149,7 @@ endif
 #  ======== upload  ======== 
 BOARDIP=10.102.1.152
 upload:
-	# sshpass -p temppwd ssh debian@$(BOARDIP) "echo stop > /sys/class/remoteproc/remoteproc2/state; exit 0"
-	sshpass -p temppwd scp bin/release/hello.xem4 debian@$(BOARDIP):~
+	sshpass -p temppwd scp $(OUTP)/release/ipcmotor.xem4 debian@$(BOARDIP):~
 	sshpass -p temppwd scp start.sh debian@$(BOARDIP):~
 	sshpass -p temppwd scp trace.sh debian@$(BOARDIP):~
 	sshpass -p temppwd ssh debian@$(BOARDIP) "chmod +x start.sh; chmod +x trace.sh"
-	# sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"
-	# sshpass -p temppwd scp O/motorpru debian@$(BOARDIP):~
-
-

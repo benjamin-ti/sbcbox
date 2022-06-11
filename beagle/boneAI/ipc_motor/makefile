@@ -14,11 +14,17 @@ host_make:
 host_clean:
 	$(MAKE) -C host clean
 	
+host_upload:
+	$(MAKE) -C host upload
+	
 ipu1_make:
 	$(MAKE) -C boneai_ipu1 release
 	
 ipu1_clean:
 	$(MAKE) -C boneai_ipu1 clean
+
+ipu1_upload:
+	$(MAKE) -C boneai_ipu1 upload
 	
 upload:
 	$(MAKE) -C boneai_ipu1 upload

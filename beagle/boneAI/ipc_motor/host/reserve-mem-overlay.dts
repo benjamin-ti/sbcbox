@@ -1,0 +1,24 @@
+/dts-v1/;
+/plugin/;
+
+// RAM Ends at bfdfffff
+
+/ {
+    fragment@0 {
+
+        target-path = "/";
+        __overlay__ {
+
+            reserved-memory {
+
+                motor_reserved: motor_reserved@BED00000 {
+                    reg = <0x0 0xBED00000 0x0 0x01000000>;
+                    no-map;
+                    status = "okay";
+                };
+
+            };
+
+        };
+    };
+};

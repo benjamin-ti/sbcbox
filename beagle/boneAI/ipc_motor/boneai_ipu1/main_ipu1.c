@@ -4,13 +4,15 @@
 #include <ti/sysbios/BIOS.h>
 #include <ti/sysbios/knl/Task.h>
 
+#define VAYU_IPU_1
+#include <rsc_table_vayu_ipu.h>
+
 #define IPU1MSGQNAME "Ipu1:MsgQ:1"
 
 typedef struct {
     MessageQ_MsgHeader  reserved;
     UInt32              cmd;
 } MyMsg;
-
 
 Void smain(UArg arg0, UArg arg1)
 {
@@ -20,6 +22,9 @@ Void smain(UArg arg0, UArg arg1)
     MyMsg*          pMyMsg;
 
     Log_info0("--> smain:");
+
+    volatile char* ram = (volatile char*)0xBED00000;
+    *ram = 'B';
 
     MessageQ_Params_init(&msgqParams);
     ipu1msgQ = MessageQ_create(IPU1MSGQNAME, &msgqParams);
@@ -37,6 +42,7 @@ Void smain(UArg arg0, UArg arg1)
 
     /* process the message */
     Log_info1("Msg: cmd=0x%x", pMyMsg->cmd);
+    Log_info2("Ram: %c(%x)", *ram, *ram);
 
     status = MessageQ_free((MessageQ_Msg)pMyMsg);
     if (status < 0) {
@@ -57,7 +63,7 @@ Int main(Int argc, Char* argv[])
     Error_Block     eb;
     Task_Params     taskParams;
 
-    Log_info0("--> main:");
+    Log_info1("--> main: %x", (unsigned int)&eb);
 
     Error_init(&eb);
 

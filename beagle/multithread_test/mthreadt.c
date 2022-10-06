@@ -64,7 +64,7 @@ int main(void)
 
     printf("Hello\n");
 
-    fp = fopen("/etc/asound.conf", "r");
+    fp = fopen("/etc/network/interfaces", "r");
     if (fp == NULL) {
         printf("Can't open file\n");
         return 1;

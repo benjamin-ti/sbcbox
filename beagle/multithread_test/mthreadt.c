@@ -16,8 +16,14 @@ static pthread_t lk_pTestThread[TEST_THREAD_NUM];
 static void*
 Appl_TestThread(void *threadArg)
 {
+    struct timeval tv;
+
+    tv.tv_sec = 200;
+    tv.tv_usec = 0;
+
     while (1) {
-        sleep(200);
+        // sleep(200);
+        select(0, NULL, NULL, NULL, &tv);
         printf("TestThread: %i\n", (int)threadArg);
     }
 }

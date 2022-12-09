@@ -16,8 +16,14 @@ static pthread_t lk_pTestThread[TEST_THREAD_NUM];
 static void*
 Appl_TestThread(void *threadArg)
 {
+    struct timeval tv;
+
+    tv.tv_sec = 200;
+    tv.tv_usec = 0;
+
     while (1) {
-        sleep(200);
+        // sleep(200);
+        select(0, NULL, NULL, NULL, &tv);
         printf("TestThread: %i\n", (int)threadArg);
     }
 }
@@ -64,7 +70,7 @@ int main(void)
 
     printf("Hello\n");
 
-    fp = fopen("/etc/asound.conf", "r");
+    fp = fopen("/etc/network/interfaces", "r");
     if (fp == NULL) {
         printf("Can't open file\n");
         return 1;

@@ -5,7 +5,7 @@ CC=arm-linux-gnueabihf-gcc -g
 all: mkO O/mthreadt
 
 upload:
-	sshpass -p temppwd scp O/mthreadt debian@10.102.1.224:~ 
+	sshpass -p root scp O/mthreadt root@10.102.1.119:~ 
 
 O/mthreadt: O/mthreadt.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -pthread -o $@

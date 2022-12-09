@@ -7,8 +7,13 @@
 # order to use the same Makefile
 #(ARM Linux) ln -s /usr/bin/ /usr/share/ti/cgt-pru/bin
 
-PRU_SDK_DIR=/opt/bbb_pru_sdk
-PRU_CGT=$(PRU_SDK_DIR)/usr/share/ti-cgt-pru
+PRU_SDK_DIR=/home/user/ti
+PRU_CGT=$(PRU_SDK_DIR)/ti-cgt-pru_2.3.3
+export SYSROOT=/opt/bbb_debian10_lx4_19rt_sysroot
+
+CC_ARM=arm-linux-gnueabihf-gcc -g --sysroot $$SYSROOT
+#CC_ARM=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
+##CC_ARM=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
 
 include myconfig
 
@@ -51,21 +56,36 @@ MAP1=$(GEN_DIR)/$(PROG_NAME1).map
 SOURCES1=PRU_gpioToggle.c
 OBJECTS1=$(patsubst %,$(GEN_DIR)/%,$(SOURCES1:.c=.obj))
 
-PROG_NAME2=PRU_RPMsg
+PROG_NAME2=PRU_RPMsgEcho
 TARGET2=$(GEN_DIR)/$(PROG_NAME2).elf
 MAP2=$(GEN_DIR)/$(PROG_NAME2).map
-SOURCES2=PRU_RPMsg_Echo_Interrupt1.c
+SOURCES2=PRU_RPMsgEcho.c
 OBJECTS2=$(patsubst %,$(GEN_DIR)/%,$(SOURCES2:.c=.obj))
 
-all: printStart $(TARGET1) $(TARGET2) O/motorpru printEnd
+PROG_NAME3=PRU_Motor
+TARGET3=$(GEN_DIR)/$(PROG_NAME3).elf
+MAP3=$(GEN_DIR)/$(PROG_NAME3).map
+SOURCES3=PRU_Motor.c
+OBJECTS3=$(patsubst %,$(GEN_DIR)/%,$(SOURCES2:.c=.obj))
 
-upload:
+all: printStart $(TARGET1) $(TARGET2) $(TARGET3) O/host_motor O/host_echo printEnd
+
+upload_only:
+	sshpass -p temppwd scp O/host_echo debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/host_motor debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/PRU_gpioToggle.elf debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/PRU_RPMsgEcho.elf debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/PRU_Motor.elf debian@$(BOARDIP):~
+	sshpass -p temppwd scp change_prumsg_echo.sh debian@$(BOARDIP):~
+
+upload_motor:
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_46_pinmux/state; exit 0"
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_44_pinmux/state; exit 0"
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo stop > /sys/class/remoteproc/remoteproc2/state; exit 0"
-	sshpass -p temppwd scp O/PRU_RPMsg.elf debian@$(BOARDIP):/lib/firmware/am335x-pru1-fw
-	sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"
-	sshpass -p temppwd scp O/motorpru debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/host_motor debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/PRU_RPMsgEcho.elf debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/PRU_RPMsgEcho.elf debian@$(BOARDIP):/lib/firmware/am335x-pru1-fw
+	sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"	
 
 printStart:
 	@echo ''
@@ -80,12 +100,11 @@ printEnd:
 	@echo '************************************************************'
 	@echo ''
 
-# CC_ARM=arm-linux-gnueabihf-gcc -g 
-#CC_ARM=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
-CC_ARM=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
-
-O/motorpru: O/motorpru.o
+O/host_echo: O/host_echo.o
 	$(CC_ARM) $^ $(LOADLIBES) $(LDLIBS) -lgpiod -lpthread -o $@
+
+O/host_motor: O/host_motor.o
+	$(CC_ARM) $^ $(LOADLIBES) $(LDLIBS) -lgpiod -lpthread -o $@	
 
 O/%.o : %.c
 	$(CC_ARM) -c $< -o $@
@@ -103,6 +122,13 @@ $(TARGET2): $(OBJECTS2) $(LINKER_COMMAND_FILE)
 	@echo 'Building target: $@'
 	@echo 'Invoking: PRU Linker'
 	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS2) -m$(MAP2) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
+	@echo 'Finished building target: $@'
+
+$(TARGET3): $(OBJECTS3) $(LINKER_COMMAND_FILE)
+	@echo ''
+	@echo 'Building target: $@'
+	@echo 'Invoking: PRU Linker'
+	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS2) -m$(MAP3) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
 	@echo 'Finished building target: $@'
 
 # Invokes the compiler on all c files in the directory to create the object files

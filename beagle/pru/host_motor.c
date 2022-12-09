@@ -155,6 +155,8 @@ int main(void)
     ret = WriteValue2File("/sys/devices/platform/ocp/ocp:P8_44_pinmux/state", "pruout");
     if (ret < 0) goto release_line;
 
+    getchar();
+
     while(1) {
         ret = WriteValue2File("/dev/rpmsg_pru31", "1");
         if (ret < 0) goto release_line;

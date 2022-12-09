@@ -11,3 +11,14 @@ then
     sudo apt update ; sudo apt install --only-upgrade libgnutls30
     or make sure to keep your software up-to date:
     sudo apt update ; sudo apt upgrade
+
+ODER:
+
+sudo apt-get update
+sudo apt-cache search linux-image | grep <branch>
+sudo apt-get install linux-image-<specific version>
+sudo reboot
+
+z.B. 
+sudo apt-cache search linux-image | grep ti
+fuer BeagleBone Black

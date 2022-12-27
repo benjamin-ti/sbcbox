@@ -1,12 +1,16 @@
-ENTRY(_Reset)
+ENTRY(vectors_start)
 SECTIONS
 {
-    . = 0x10000;
-    .startup . : { O/startup.o(.text) }
-    .text : { *(.text) }
-    .data : { *(.data) }
-    .bss : { *(.bss COMMON) }
-    . = ALIGN(8);
-    . = . + 0x1000; /* 4kB of stack memory */
-    stack_top = .;
+	. = 0x10000;
+	.text : {
+		O/vector.o
+		*(.text .rodata)
+	}
+	.data : { *(.data) }
+	.bss : { *(.bss) }
+	. = ALIGN(8);
+	. = . + 0x1000; /* 4kB of stack memory */
+	stack_top = .;
+	. = . + 0x1000; /* 4kB of irq stack memory */
+	irq_stack_top = .;
 }

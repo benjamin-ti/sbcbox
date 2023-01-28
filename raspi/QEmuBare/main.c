@@ -36,11 +36,11 @@ void print_uart0(const char *s);
 
 void __attribute__((interrupt)) irq_handler()
 {
-	print_uart0("irq_handler\n");
-//	*TIMER0_LOAD = 0xFFFF;
-//	*PIC_IntEnClear = PIC_TIMER0_1;
-//	*PIC_IntEnable = PIC_TIMER0_1;
-	*TIMER0_INTCLR = PIC_TIMER0_1;
+    print_uart0("irq_handler\n");
+    //	*TIMER0_LOAD = 0xFFFF;
+    //	*PIC_IntEnClear = PIC_TIMER0_1;
+    //	*PIC_IntEnable = PIC_TIMER0_1;
+    *TIMER0_INTCLR = PIC_TIMER0_1;
 }
 
 /* all other handlers are infinite loops */
@@ -53,13 +53,13 @@ void __attribute__((interrupt)) fiq_handler(void) { for(;;); }
 // -----------------------------------------------------------------------------
 void copy_vectors(void)
 {
-	extern uint32_t vectors_start;
-	extern uint32_t vectors_end;
-	uint32_t *vectors_src = &vectors_start;
-	uint32_t *vectors_dst = (uint32_t *)0;
+    extern uint32_t vectors_start;
+    extern uint32_t vectors_end;
+    uint32_t *vectors_src = &vectors_start;
+    uint32_t *vectors_dst = (uint32_t *)0;
 
-	while (vectors_src < &vectors_end)
-		*vectors_dst++ = *vectors_src++;
+    while (vectors_src < &vectors_end)
+        *vectors_dst++ = *vectors_src++;
 }
 
 // -----------------------------------------------------------------------------
@@ -76,20 +76,20 @@ void print_uart0(const char *s)
 
 void main()
 {
-	char pcBuf[BUF_SIZE];
-	int i;
-	unsigned int uiTimerValue;
+    char pcBuf[BUF_SIZE];
+    int i;
+    unsigned int uiTimerValue;
 
-	*TIMER0_LOAD = 0xFFFF;
-	*TIMER0_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
-	*PIC_IntEnClear = PIC_TIMER0_1;
-	*PIC_IntEnable = PIC_TIMER0_1;
+    *TIMER0_LOAD = 0xFFFF;
+    *TIMER0_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
+    *PIC_IntEnClear = PIC_TIMER0_1;
+    *PIC_IntEnable = PIC_TIMER0_1;
 
-	for (;;) {
-		uiTimerValue = *TIMER0_VALUE;
-		if (uiTimerValue>0x9999 && uiTimerValue<0xAAAA) {
-			snprintf(pcBuf, BUF_SIZE, "Hello world: %x\n", uiTimerValue);
-			print_uart0(pcBuf);
-		}
-	}
+    for (;;) {
+        uiTimerValue = *TIMER0_VALUE;
+        if (uiTimerValue>0x9999 && uiTimerValue<0xAAAA) {
+            snprintf(pcBuf, BUF_SIZE, "Hello world: %x\n", uiTimerValue);
+            print_uart0(pcBuf);
+        }
+    }
 }

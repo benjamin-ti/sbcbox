@@ -10,8 +10,14 @@ mkO:
 O/qemubare.bin: O/qemubare.elf
 	arm-none-eabi-objcopy -O binary $< $@
 
-O/qemubare.elf: O/init.o
+O/qemubare.elf: O/vector.o O/main.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
+
+O/%.o : %.c
+	$(CC) $(CPPFLAGS) $(CFLAGS) -mcpu=$(CPU) -c $< -o $@
+
+O/%.o : %.s
+	$(CC) $(CPPFLAGS) $(CFLAGS) -mcpu=$(CPU) -c $< -o $@
 
 O/%.o : %.S
 	$(CC) $(CPPFLAGS) $(CFLAGS) -mcpu=$(CPU) -c $< -o $@

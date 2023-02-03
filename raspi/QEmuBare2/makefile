@@ -1,4 +1,5 @@
-CC=arm-none-eabi-gcc -g
+CC=arm-none-eabi-gcc -g -O0 -fno-stack-protector
+#CC=arm-linux-gnueabihf-gcc -g -O0
 
 CPU=cortex-a8
 
@@ -10,8 +11,8 @@ mkO:
 O/qemubare.bin: O/qemubare.elf
 	arm-none-eabi-objcopy -O binary $< $@
 
-O/qemubare.elf: O/vector.o O/main.o
-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
+O/qemubare.elf: O/vector.o O/sbrk.o O/main.o
+	$(CC) -mcpu=$(CPU) -Xlinker -Map -Xlinker O/qemubare.map $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
 
 O/%.o : %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -mcpu=$(CPU) -c $< -o $@

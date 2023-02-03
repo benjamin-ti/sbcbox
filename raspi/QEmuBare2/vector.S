@@ -3,7 +3,7 @@
 #define SDRAM_START 0x70000000
 #define SDRAM_END   0x90000000
 
-#define STACK_BASE_FIQ   (SDRAM_START+0x1000)
+#define STACK_BASE_IRQ   (SDRAM_START+0x1000)
 #define STACK_BASE_ABORT   (SDRAM_START+0x3000)
 #define STACK_BASE_UNDEFINED   (SDRAM_START+0x4000)
 #define STACK_BASE_SYSTEM   (SDRAM_START+0x5000)
@@ -26,14 +26,14 @@ entryPoint:
 
 
     // initialize stack for all modes, except user mode because we will set it on process creation
-    msr     CPSR_c,#0b11010001           // stack for FIQ mode
-    ldr     r13,=STACK_BASE_FIQ
+    msr     CPSR_c,#0b11010010           // stack for IRQ mode
+    ldr     r13,=STACK_BASE_IRQ
     msr     CPSR_c,#0b11010111           // stack for Abort mode
     ldr     r13,=STACK_BASE_ABORT
     msr     CPSR_c,#0b11011011           // stack for Undefined mode
     ldr     r13,=STACK_BASE_UNDEFINED
     msr     CPSR_c,#0b11010011           // stack for Supervisor mode. And we will stay in that mode
-    ldr     r13,=STACK_BASE_UNDEFINED   // This is temporary, We will use another stack after MMU is init
+    ldr     r13,=STACK_BASE_UNDEFINED
 
     PRINTK("Booting\r\n")
 /*

@@ -1,5 +1,5 @@
 # CC=arm-linux-gnueabihf-gcc -g
-CC=arm-none-eabi-gcc -g
+CC=arm-none-eabi-gcc -ggdb
 
 all: mkO O/qemubare.bin
 
@@ -25,4 +25,4 @@ O/%.o : %.S
 	$(CC) $(CPPFLAGS) $(CFLAGS) -mcpu=$(CPU) -c $< -o $@
 
 clean: 
-	rm O/*.o
+	rm -f O/*.o

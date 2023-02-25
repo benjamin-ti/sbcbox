@@ -35,16 +35,12 @@ fi
 ssh-keygen -f "/home/$USER/.ssh/known_hosts" -R "$PI_IP_ADDR"
 ssh-copy-id pi@"$PI_IP_ADDR"
 
-sudo mkdir -p /opt
-sudo mkdir -p /opt/pi
-cd /opt/pi
-sudo mkdir -p sysroot
-cd sysroot
+mkdir -p ~/opt
+sudo mkdir -p ~/opt/rpi_debian11_lx5_15_sysroot
+cd ~/opt/rpi_debian11_lx5_15_sysroot
 
 sudo rsync -avz pi@$PI_IP_ADDR:/lib .
 sudo rsync -avz pi@$PI_IP_ADDR:/usr/include usr
 sudo rsync -avz pi@$PI_IP_ADDR:/usr/lib usr
 sudo rsync -avz pi@$PI_IP_ADDR:/usr/local/include usr/local
 sudo rsync -avz pi@$PI_IP_ADDR:/usr/local/lib usr/local
-# evtl. /usr/local/include
-# evtl. /usr/local/lib

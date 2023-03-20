@@ -1,6 +1,6 @@
-export SYSROOT=/opt/bbb_debian10_lx4_19rt_sysroot
+SYSROOT=/home/user/opt/bbb_debian10_lx4_19rt_sysroot
 
-CC=arm-linux-gnueabihf-gcc -O3 --sysroot /opt/bbb_debian10_lx4_19rt_sysroot
+CC=arm-linux-gnueabihf-gcc -O3 --sysroot $(SYSROOT)
 #CC=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
 #CC=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-gcc -g
 

@@ -1,119 +1,191 @@
-#include <linux/module.h>
+#include <linux/delay.h>
+#include <linux/dma-mapping.h>
 #include <linux/dmaengine.h>
+#include <linux/freezer.h>
+#include <linux/init.h>
+#include <linux/kthread.h>
+#include <linux/sched/task.h>
+#include <linux/module.h>
+#include <linux/moduleparam.h>
+#include <linux/random.h>
 #include <linux/slab.h>
-#include <linux/types.h>
+#include <linux/wait.h>
 
-struct dma_chan *chan;
+#include <linux/async_tx.h>
+#include <linux/async.h>
 
 /*
-void foo (void)
-{
-    int index = 0;
-    dma_cookie_t cookie;
-    size_t len = 0x20000;
-
-    ktime_t start, end, end1, end2, end3;
-    s64 actual_time;
-
-    u16* dest;
-    u16* src;
-
-    dest = kmalloc(len, GFP_KERNEL);
-    src = kmalloc(len, GFP_KERNEL);
-
-    for (index = 0; index < len/2; index++)
-    {
-        dest[index] = 0xAA55;
-        src[index] = 0xDEAD;
-    }
-
-    start = ktime_get();
-    cookie = dma_async_memcpy_buf_to_buf(chan, dest, src, len);
-
-    while (dma_async_is_tx_complete(chan, cookie, NULL, NULL) == DMA_IN_PROGRESS)
-    {
-       dma_sync_wait(chan, cookie);
-    }
-    end = ktime_get();
-    actual_time = ktime_to_ns(ktime_sub(end, start));
-    printk("Time taken for function() execution     dma: %lld\n",(long long)actual_time);
-
-    memset(dest, 0 , len);
-
-    start = ktime_get();
-    memcpy(dest, src, len);
-
-    end = ktime_get();
-    actual_time = ktime_to_ns(ktime_sub(end, start));
-    printk("Time taken for function() execution non-dma: %lld\n",(long long)actual_time);
-}
+dma_test {
+	compatible = "cet,am335x-dma-test";
+	status = "okay";
+	dmas = <&edma_xbar 32 0 32>;
+	dma-names = "dma_test";
+};
 */
 
-int kmhello_init(void)
+// Async API
+// async_memcpy
+
+static struct dma_chan *dma_ch;
+
+static void dma_memcpy_callback(void *data)
 {
-    u16* dest;
+	printk("dma_memcpy_callback\n");
+}
+
+static int kmmemcpy(void)
+{
     u16* src;
+    u16* dest;
+    size_t len = 0x20000;
+    int i;
+
+    struct dma_async_tx_descriptor *tx;
+    struct async_submit_ctl submit;
+    struct completion cmp;
+
+    printk("init_module\n");
+
+    src = kmalloc(len, GFP_KERNEL);
+    dest = kmalloc(len, GFP_KERNEL);
+
+    for (i=0; i<len/2; i++)
+    {
+    	src[i] = 0xDEAD;
+        dest[i] = 0xAA55;
+    }
+
+    printk("src: %hx\n", src[0]);
+    printk("dest: %hx\n", dest[0]);
+
+    init_async_submit(&submit, 0, NULL, NULL, NULL,
+                    NULL);
+
+//    submit->depend_tx = tx;
+    tx = async_memcpy((struct page *)dest, (struct page *)src, 0, 0, len, &submit);
+    printk("tx: %hx\n", (unsigned int)tx);
+
+    init_completion(&cmp);
+
+    async_tx_issue_pending_all();
+
+    wait_for_completion(&cmp);
+
+    printk("src: %hx\n", src[0]);
+    printk("dest: %hx\n", dest[0]);
+
+    return 0;
+}
+
+static int kmhello_init(void)
+{
+    u16* src;
+    dma_addr_t  busSrc;
+    u16* dest;
+    dma_addr_t  busDest;
+
     size_t len = 0x20000;
     int i;
     int ret;
 
     dma_cap_mask_t mask;
-    struct dma_chan *dma_ch;
+
     struct dma_slave_config dma_cfg;
     struct dma_async_tx_descriptor *dma_m2m_desc;
-
+    dma_cookie_t cookie;
 
     printk("init_module\n");
 
-    dest = kmalloc(len, GFP_KERNEL);
-    src = kmalloc(len, GFP_KERNEL);
+    src = dma_alloc_coherent(NULL, len, &busSrc, GFP_KERNEL);
+    dest = dma_alloc_coherent(NULL, len, &busDest, GFP_KERNEL);
 
     for (i=0; i<len/2; i++)
     {
+    	src[i] = 0xDEAD;
         dest[i] = 0xAA55;
-        src[i] = 0xDEAD;
     }
 
-    printk("src: %hu\n", src[0]);
-    printk("dest: %hu\n", dest[0]);
+    printk("src: %hx\n", src[0]);
+    printk("dest: %hx\n", dest[0]);
 
     dma_cap_zero(mask);
     dma_cap_set(DMA_MEMCPY, mask);
-    dma_ch = dma_request_channel(mask, 0, NULL);
-
+    dma_ch = dma_request_channel(mask, NULL, NULL);
     if (dma_ch == NULL)
     {
         printk("request_channel failed.\n");
-        goto err;
+        return 0;
     }
-    printk("got dma_ch = 0x%x\n", dma_ch);
 
+    printk("got dma_ch = 0x%x\n", (unsigned int)dma_ch);
 
     memset(&dma_cfg, 0, sizeof(struct dma_slave_config));
     dma_cfg.direction = DMA_MEM_TO_MEM;
+//    dma_cfg.src_addr = busSrc;
+//    dma_cfg.dst_addr = busDest;
+    dma_cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
     dma_cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+/*
+    dma_cfg.src_maxburst = 1;
+    dma_cfg.dst_maxburst = 1;
+    dma_cfg.device_fc = 0;
+    dma_cfg.slave_id = 0;
+*/
     ret = dmaengine_slave_config(dma_ch, &dma_cfg);
-    if (ret)
+    if (ret) {
+    	printk("dmaengine_slave_config error\n");
        goto err;
-    printk("dmaengine_slave_config pass.\n");
+    }
+    printk("dmaengine_slave_config pass\n");
+
+    if (dma_ch->device->device_prep_dma_memcpy == NULL)
+    {
+        printk("device_prep_dma_memcpy = NULL\n");
+        goto err;
+    }
 
     dma_m2m_desc = dma_ch->device->device_prep_dma_memcpy(dma_ch,
-                                        dest, src, len, 0);
-//    dma_m2m_desc->callback = dma_memcpy_callback_from_fpga;
-    dmaengine_submit(dma_m2m_desc);
-    dma_async_issue_pending (dma_ch);
+    								busDest, busSrc, len, DMA_CTRL_ACK | DMA_PREP_INTERRUPT);
+    if (!dma_m2m_desc) {
+    	printk("device_prep_dma_memcpy failed\n");
+    	goto err;
+    }
+    dma_m2m_desc->callback = dma_memcpy_callback;
 
-    printk("src: %hu\n", src[0]);
-    printk("dest: %hu\n", dest[0]);
+//    dmaengine_submit(dma_m2m_desc);
+    cookie = dma_m2m_desc->tx_submit(dma_m2m_desc); //submit the desc
+    if (dma_submit_error(cookie)){
+        printk(KERN_INFO "Failed to do DMA tx_submit");
+        goto err;
+    }
+
+    printk("wait for dma fin\n");
+    dma_async_issue_pending(dma_ch);
+
+    printk("src: %hx\n", src[0]);
+    printk("dest: %hx\n", dest[0]);
 
 err:
+	if (dma_ch != NULL) {
+		dma_release_channel(dma_ch);
+		dma_ch = NULL;
+	}
+
     return 0;
 }
 
-void kmhello_cleanup(void)
+static void kmhello_cleanup(void)
 {
+	if (dma_ch != NULL) {
+		dma_release_channel(dma_ch);
+	}
     printk("cleanup_module\n");
 }
 
-module_init(kmhello_init);
+//late_initcall(kmhello_init);
+late_initcall(kmmemcpy);
+//module_init(kmhello_init);
 module_exit(kmhello_cleanup);
+
+MODULE_AUTHOR("Benjamin Tisler");
+MODULE_LICENSE("GPL v2");

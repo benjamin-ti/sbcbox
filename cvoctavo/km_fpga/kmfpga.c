@@ -28,9 +28,13 @@ dma_test {
 
 static struct dma_chan *dma_ch;
 
+static struct completion dma_m2m_ok;
+
 static void dma_memcpy_callback(void *data)
 {
 	printk("dma_memcpy_callback\n");
+
+	complete(&dma_m2m_ok);
 }
 
 static int kmmemcpy(void)
@@ -77,6 +81,18 @@ static int kmmemcpy(void)
     return 0;
 }
 
+static void dev_release(struct device *dev)
+{
+	printk("releasing dma capable device\n");
+}
+
+// static u64 _dma_mask = DMA_BIT_MASK(64);
+static struct device dev = {
+	.release = dev_release,
+	.coherent_dma_mask = ~0, 	/* dma_alloc_coherent(): allow any address */
+	.dma_mask = &dev.coherent_dma_mask,	/* other APIs: use the same mask as coherent */
+};
+
 static int kmhello_init(void)
 {
     u16* src;
@@ -96,7 +112,11 @@ static int kmhello_init(void)
 
     printk("init_module\n");
 
+    init_completion(&dma_m2m_ok);
+
+    //src = kzalloc(len, GFP_KERNEL | GFP_DMA);
     src = dma_alloc_coherent(NULL, len, &busSrc, GFP_KERNEL);
+    //dest = kzalloc(len, GFP_KERNEL | GFP_DMA);
     dest = dma_alloc_coherent(NULL, len, &busDest, GFP_KERNEL);
 
     for (i=0; i<len/2; i++)
@@ -123,7 +143,7 @@ static int kmhello_init(void)
     dma_cfg.direction = DMA_MEM_TO_MEM;
 //    dma_cfg.src_addr = busSrc;
 //    dma_cfg.dst_addr = busDest;
-    dma_cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
+//    dma_cfg.src_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
     dma_cfg.dst_addr_width = DMA_SLAVE_BUSWIDTH_4_BYTES;
 /*
     dma_cfg.src_maxburst = 1;
@@ -138,6 +158,20 @@ static int kmhello_init(void)
     }
     printk("dmaengine_slave_config pass\n");
 
+/*
+    busSrc = dma_map_single(&dev, src, len, DMA_TO_DEVICE);
+	if (dma_mapping_error(&dev, busSrc)) {
+		printk("Could not map src buffer\n");
+		goto err;
+	}
+	busDest = dma_map_single(&dev, dest, len, DMA_FROM_DEVICE);
+	if (dma_mapping_error(&dev, busDest)) {
+		printk("Could not map dst buffer\n");
+		dma_unmap_single(&dev, busSrc, len, DMA_TO_DEVICE);
+		goto err;
+	}
+*/
+
     if (dma_ch->device->device_prep_dma_memcpy == NULL)
     {
         printk("device_prep_dma_memcpy = NULL\n");
@@ -145,15 +179,15 @@ static int kmhello_init(void)
     }
 
     dma_m2m_desc = dma_ch->device->device_prep_dma_memcpy(dma_ch,
-    								busDest, busSrc, len, DMA_CTRL_ACK | DMA_PREP_INTERRUPT);
+    								busDest, busSrc, len, 0);
     if (!dma_m2m_desc) {
     	printk("device_prep_dma_memcpy failed\n");
     	goto err;
     }
     dma_m2m_desc->callback = dma_memcpy_callback;
 
-//    dmaengine_submit(dma_m2m_desc);
-    cookie = dma_m2m_desc->tx_submit(dma_m2m_desc); //submit the desc
+    cookie = dmaengine_submit(dma_m2m_desc);
+//    cookie = dma_m2m_desc->tx_submit(dma_m2m_desc); //submit the desc
     if (dma_submit_error(cookie)){
         printk(KERN_INFO "Failed to do DMA tx_submit");
         goto err;
@@ -161,11 +195,19 @@ static int kmhello_init(void)
 
     printk("wait for dma fin\n");
     dma_async_issue_pending(dma_ch);
+    wait_for_completion(&dma_m2m_ok);
 
     printk("src: %hx\n", src[0]);
     printk("dest: %hx\n", dest[0]);
 
 err:
+/*
+	dma_unmap_single(&dev, busSrc, len, DMA_TO_DEVICE);
+	dma_unmap_single(&dev, busDest, len, DMA_FROM_DEVICE);
+
+	kfree(src);
+	kfree(dest);
+*/
 	if (dma_ch != NULL) {
 		dma_release_channel(dma_ch);
 		dma_ch = NULL;
@@ -183,7 +225,7 @@ static void kmhello_cleanup(void)
 }
 
 //late_initcall(kmhello_init);
-late_initcall(kmmemcpy);
+late_initcall(kmhello_init);
 //module_init(kmhello_init);
 module_exit(kmhello_cleanup);
 

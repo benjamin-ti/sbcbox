@@ -13,3 +13,5 @@ else
     cp $BOARD_DIR/uEnv.txt $BINARIES_DIR/uEnv.txt
 fi
 ln -srf /usr/share/fonts/dejavu ${TARGET_DIR}/usr/lib/fonts
+
+echo "/dev/mmcblk0p1	/boot		vfat	defaults	0	2" >> ${TARGET_DIR}/etc/fstab

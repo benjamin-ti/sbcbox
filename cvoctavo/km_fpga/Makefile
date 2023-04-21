@@ -1,4 +1,5 @@
-BOARDIP=10.102.1.114
+BOARDIP=10.102.12.137
+USER=debian
 
 export ARCH:=arm
 # export CROSS_COMPILE:=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-
@@ -27,11 +28,11 @@ clean:
 	make -C $(KDIR) M=$(BUILD_DIR) src=$(PWD) clean
 	
 upload:
-	scp O/kmfpga.ko root@$(BOARDIP):~
+	scp O/kmfpga.ko $(USER)@$(BOARDIP):~
 
 run: all upload
-	ssh root@$(BOARDIP) "insmod kmfpga.ko"
+	ssh $(USER)@$(BOARDIP) "insmod kmfpga.ko"
 	
 stop:
-	ssh root@$(BOARDIP) "rmmod kmfpga"
+	ssh $(USER)@$(BOARDIP) "rmmod kmfpga"
 	

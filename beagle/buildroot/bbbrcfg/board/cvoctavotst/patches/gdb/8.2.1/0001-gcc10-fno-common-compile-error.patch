@@ -1,0 +1,65 @@
+diff --git a/sim/arm/armemu.c b/sim/arm/armemu.c
+index 76f398b3d7..3a72277683 100644
+--- a/sim/arm/armemu.c
++++ b/sim/arm/armemu.c
+@@ -1140,10 +1140,6 @@  handle_VFP_move (ARMul_State * state, ARMword instr)
+
+ /* EMULATION of ARM6.  */
+
+-/* The PC pipeline value depends on whether ARM
+-   or Thumb instructions are being executed.  */
+-ARMword isize;
+-
+ ARMword
+ #ifdef MODE32
+ ARMul_Emulate32 (ARMul_State * state)
+diff --git a/sim/arm/arminit.c b/sim/arm/arminit.c
+index 851d3567e1..3a626c8467 100644
+--- a/sim/arm/arminit.c
++++ b/sim/arm/arminit.c
+@@ -40,6 +40,10 @@  unsigned ARMul_MultTable[32] =
+ ARMword ARMul_ImmedTable[4096];    /* immediate DP LHS values */
+ char ARMul_BitList[256];   /* number of bits in a byte table */
+
++/* The PC pipeline value depends on whether ARM
++   or Thumb instructions are being executed.  */
++ARMword isize;
++
+ /***************************************************************************\
+ *         Call this routine once to set up the emulator's tables.           *
+ \***************************************************************************/
+diff --git a/sim/arm/wrapper.c b/sim/arm/wrapper.c
+index fde5d8c326..9f86e089a1 100644
+--- a/sim/arm/wrapper.c
++++ b/sim/arm/wrapper.c
+@@ -129,9 +129,9 @@  union maverick_acc_regs
+   long double ld;      /* Acc registers are 72-bits.  */
+ };
+
+-struct maverick_regs     DSPregs[16];
+-union maverick_acc_regs  DSPacc[4];
+-ARMword DSPsc;
++extern struct maverick_regs     DSPregs[16];
++extern union maverick_acc_regs  DSPacc[4];
++extern ARMword DSPsc;
+
+ static void
+ init (void)
+@@ -236,7 +236,7 @@  sim_create_inferior (SIM_DESC sd ATTRIBUTE_UNUSED,
+ {
+   int argvlen = 0;
+   int mach;
+-  char **arg;
++  char * const *arg;
+
+   init ();
+
+@@ -867,7 +867,7 @@  sim_open (SIM_OPEN_KIND kind,
+
+   sim_callback = cb;
+
+-  sim_target_parse_arg_array (argv);
++  sim_target_parse_arg_array ((char **) argv);
+
+   if (argv[1] != NULL)
+     {

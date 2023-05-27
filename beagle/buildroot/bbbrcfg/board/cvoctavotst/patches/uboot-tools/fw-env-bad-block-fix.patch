@@ -1,0 +1,82 @@
+--- a/tools/env/fw_env.c	2020-01-06 21:56:31.000000000 +0100
++++ b/tools/env/fw_env.c	2021-07-21 09:50:43.691595706 +0200
+@@ -935,7 +935,7 @@
+ 		}
+ 
+ 		if (rc) {	/* block is bad */
+-			blockstart += blocklen;
++	                blockstart += blocklen;
+ 			continue;
+ 		}
+ 
+@@ -1357,9 +1357,11 @@
+ static int flash_io(int mode)
+ {
+ 	int fd_current, rc;
++	const char* devname;
+ 
+ 	/* dev_current: fd_current, erase_current */
+-	fd_current = open(DEVNAME(dev_current), mode);
++	devname = DEVNAME(dev_current);
++	fd_current = open(devname, mode);
+ 	if (fd_current < 0) {
+ 		fprintf(stderr,
+ 			"Can't open %s: %s\n",
+@@ -1369,6 +1371,10 @@
+ 
+ 	if (mode == O_RDWR) {
+ 		rc = flash_io_write(fd_current);
++		if (rc) {
++			dev_current = !dev_current;
++			rc = flash_io_write(fd_current);
++		}
+ 	} else {
+ 		rc = flash_read(fd_current);
+ 	}
+@@ -1433,13 +1439,15 @@
+ 
+ 	dev_current = 0;
+ 	if (flash_io(O_RDONLY)) {
+-		ret = -EIO;
+-		goto open_cleanup;
++		crc0_ok = 0;
++		// ret = -EIO;
++		// goto open_cleanup;
++	}
++	else {
++		crc0 = crc32(0, (uint8_t *)environment.data, ENV_SIZE);
++		crc0_ok = (crc0 == *environment.crc);
+ 	}
+ 
+-	crc0 = crc32(0, (uint8_t *)environment.data, ENV_SIZE);
+-
+-	crc0_ok = (crc0 == *environment.crc);
+ 	if (!have_redund_env) {
+ 		if (!crc0_ok) {
+ 			fprintf(stderr,
+@@ -1468,8 +1476,13 @@
+ 		 */
+ 		environment.image = addr1;
+ 		if (flash_io(O_RDONLY)) {
+-			ret = -EIO;
+-			goto open_cleanup;
++			crc1_ok = 0;
++			// ret = -EIO;
++			// goto open_cleanup;
++		}
++		else {
++			crc1 = crc32(0, (uint8_t *)redundant->data, ENV_SIZE);
++			crc1_ok = (crc1 == redundant->crc);
+ 		}
+ 
+ 		/* Check flag scheme compatibility */
+@@ -1495,9 +1508,6 @@
+ 			goto open_cleanup;
+ 		}
+ 
+-		crc1 = crc32(0, (uint8_t *)redundant->data, ENV_SIZE);
+-
+-		crc1_ok = (crc1 == redundant->crc);
+ 		flag1 = redundant->flags;
+ 
+ 		/*

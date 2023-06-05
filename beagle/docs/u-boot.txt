@@ -30,8 +30,20 @@ arch/arm/cpu/armv8/start.S
 lowlevel_init(): Init HW
 arch/arm/cpu/armv8/lowlevel_init.S
 
+board_init_r(): Run callback table init_sequence_f
 board_init_f(): Init SDRAM and UART
+(common/board_f.c oder)
 arch/arm/mach-omap2/am33xx/board.c
+
+!! Evtl. Memory Relocation !!
+in arch/arm/lib/relocate.S
+# get relocate address with "bdinfo" on uboot console:
+# => bdinfo
+# DRAM bank   = 0x60000000
+# relocaddr   = 0x7ff89000
+# irq_sp      = 0x7fe88ee0
+# sp start    = 0x7fe88ed0
+
 
 board_init_r(): Run callback table init_sequence_r
 common/board_r.c

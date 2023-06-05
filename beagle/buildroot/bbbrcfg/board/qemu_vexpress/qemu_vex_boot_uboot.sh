@@ -3,9 +3,10 @@
 qemu-system-arm \
 	-M vexpress-a9 \
 	-kernel images/u-boot \
-	-drive file=images/rootfs.ext2,if=sd,format=raw \
+	-drive file=images/sdcard.img,if=sd,format=raw, \
+	-drive file=images/flash.bin,if=pflash,format=raw \
 	-cpu cortex-a9 \
-	-m 512M \
+	-m 256M \
 	-serial stdio \
 	-net nic,model=lan9118 \
 	-net user \

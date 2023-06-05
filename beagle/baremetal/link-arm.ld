@@ -1,7 +1,8 @@
 
 MEMORY
 {
-    ram : ORIGIN = 0x40300000, LENGTH = 0x10000
+    sram : ORIGIN = 0x40300000, LENGTH = 0x10000
+    dram : ORIGIN = 0x80000000, LENGTH = 0x10000000
 }
 
 SECTIONS
@@ -10,17 +11,17 @@ SECTIONS
     {
         *(.text*);
         *(.rodata*);
-    } > ram
+    } > sram
 
     .data :
     {
         *(.data)
-    } > ram
+    } > sram
 
     .bss :
     {
         *(.bss*)
-    } > ram
+    } > sram
 
     . = . + 0x1000;
     stack_top = .;

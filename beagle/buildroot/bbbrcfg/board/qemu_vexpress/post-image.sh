@@ -1,1 +1,3 @@
-qemu-img resize images/sdcard.img 128M
+#!/bin/sh
+
+qemu-img resize $BINARIES_DIR/sdcard.img 128M

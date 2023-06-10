@@ -1,5 +1,6 @@
-BOARDIP=10.102.12.137
+BOARDIP=10.102.12.117
 USER=debian
+PASSWD=temppwd
 
 export ARCH:=arm
 # export CROSS_COMPILE:=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-
@@ -8,8 +9,8 @@ export CROSS_COMPILE:=arm-linux-gnueabihf-
 # KDIR ?= /lib/modules/$(shell uname -r)/build
 # KDIR ?= /home/user/wsCppSys/vcoctavobr_outStd/build/linux-4.19.36
 # KDIR ?= /opt/bbb_debian10_lx4_19rt_sysroot/lib/modules/4.19.94-ti-rt-r73/build
-# KDIR ?= /home/user/opt/linux-headers-4.19.94-ti-rt-r73
-KDIR ?= /home/user/wsCppSys/bbkernel/linux
+KDIR ?= /home/user/opt/linux-headers-4.19.94-ti-rt-r73
+# KDIR ?= /home/user/wsCppSys/bbkernel/linux
 BUILD_DIR ?= $(PWD)/O
 BUILD_DIR_MAKEFILE ?= $(PWD)/O/Makefile
 
@@ -27,12 +28,12 @@ $(BUILD_DIR_MAKEFILE): $(BUILD_DIR)
 clean:
 	make -C $(KDIR) M=$(BUILD_DIR) src=$(PWD) clean
 	
-upload:
-	scp O/kmfpga.ko $(USER)@$(BOARDIP):~
+upload: all
+	sshpass -p $(PASSWD) scp O/kmfpga.ko $(USER)@$(BOARDIP):~
 
 run: all upload
-	ssh $(USER)@$(BOARDIP) "insmod kmfpga.ko"
+	sshpass -p $(PASSWD) ssh $(USER)@$(BOARDIP) "insmod kmfpga.ko"
 	
 stop:
-	ssh $(USER)@$(BOARDIP) "rmmod kmfpga"
+	sshpass -p $(PASSWD) ssh $(USER)@$(BOARDIP) "rmmod kmfpga"
 	

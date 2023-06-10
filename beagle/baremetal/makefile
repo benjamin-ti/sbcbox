@@ -7,7 +7,7 @@ all: mkO O/baremetal.bin
 O/baremetal.bin: O/baremetal.elf 
 	$(CHAIN)-objcopy -O binary $< $@
 
-O/baremetal.elf: O/start.o O/main.o
+O/baremetal.elf: O/start.o O/megos_uart.o O/main.o
 	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
 
 mkO:

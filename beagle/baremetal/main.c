@@ -1,3 +1,4 @@
+
 #define CM_DPLL_BASE          0x44E00500
 #define CM_DPLL_CLKSEL_TIMER2 (volatile unsigned*)(CM_DPLL_BASE+0x8)
 #define TCLKIN    0x0
@@ -8,6 +9,10 @@
 #define CM_PER_L3S      (volatile unsigned*)(CM_PER_BASE+0x04)
 #define CM_PER_TIMER2   (volatile unsigned*)(CM_PER_BASE+0x80)
 #define CM_PER_GPIO1    (volatile unsigned*)(CM_PER_BASE+0xAC)
+
+#define CM_WKUP_BASE    0x44E00400
+#define CM_WKUP_UART0_CLKCTRL (volatile unsigned*)(CM_WKUP_BASE+0xB4)
+
 
 #define INTCPS_BASE     0x48200000
 #define INTC_CONTROL    (volatile unsigned*)(INTCPS_BASE+0x48)
@@ -48,6 +53,16 @@ void __attribute__((interrupt)) irq_handler()
     *INTC_CONTROL = 0x1; // Ack Global Int
 }
 
+#define HWREG(x) (*((volatile unsigned int*)(x)))
+#define SOC_CONTROL_REGS (0x44E10000)
+#define CONTROL_CONF_UART_RXD (0x970)
+#define CONTROL_CONF_UART_TXD (0x974)
+void megos_UART0_send_string(char* msg);
+void megos_UART0_init(void);
+int megos_UART0_test(void);
+void serial_send_newline(void);
+void serial_flush(void);
+
 // -----------------------------------------------------------------------------
 #define TIME 100000
 void _main (void)
@@ -68,6 +83,16 @@ void _main (void)
     *CM_PER_GPIO1 = (1<<18 | 0x2);
 
     *GPIO1_OE &= ~(0xF<<21);
+
+//    *CM_WKUP_UART0_CLKCTRL = 0x2;
+//	HWREG(SOC_CONTROL_REGS + CONTROL_CONF_UART_RXD) = 0x30;
+//	HWREG(SOC_CONTROL_REGS + CONTROL_CONF_UART_TXD) = 0x10;
+
+	megos_UART0_init();
+//	megos_UART0_test();
+	megos_UART0_send_string("hello\n");
+	serial_send_newline();
+	serial_flush();
 
     while (1)
     {

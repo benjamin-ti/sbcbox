@@ -6,7 +6,7 @@
     <booleanAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_ON_FORK" value="false"/>
     <stringAttribute key="org.eclipse.cdt.dsf.gdb.DEV" value="/dev/ttyS0"/>
     <stringAttribute key="org.eclipse.cdt.dsf.gdb.DEV_SPEED" value="115200"/>
-    <stringAttribute key="org.eclipse.cdt.dsf.gdb.GDB_INIT" value=""/>
+    <stringAttribute key="org.eclipse.cdt.dsf.gdb.GDB_INIT" value="/home/user/wsSbcBox/sbcbox/beagle/buildroot/bbbrcfg/board/qemu_vexpress/uboot_relocate.gdb"/>
     <stringAttribute key="org.eclipse.cdt.dsf.gdb.HOST" value="localhost"/>
     <booleanAttribute key="org.eclipse.cdt.dsf.gdb.NON_STOP" value="false"/>
     <stringAttribute key="org.eclipse.cdt.dsf.gdb.PORT" value="1234"/>
@@ -24,12 +24,13 @@
     <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_ID" value="gdbserver"/>
     <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_START_MODE" value="remote"/>
     <booleanAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN" value="true"/>
-    <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN_SYMBOL" value="board_init_f"/>
-    <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="/home/user/wsCppTools/vexpressbr_out/images/u-boot"/>
+    <stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN_SYMBOL" value="main_loop"/>
+    <stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="${workspace_loc}/qemu_vexpressbr_out/images/u-boot"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="uboot"/>
     <booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="false"/>
     <stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value=""/>
     <booleanAttribute key="org.eclipse.cdt.launch.remote.RemoteCDSFDebuggerTab.DEFAULTS_SET" value="true"/>
+    <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
     <stringAttribute key="org.eclipse.debug.core.ATTR_GDBSERVER_COMMAND" value="gdbserver"/>
     <stringAttribute key="org.eclipse.debug.core.ATTR_GDBSERVER_OPTIONS" value=""/>
     <stringAttribute key="org.eclipse.debug.core.ATTR_GDBSERVER_PORT" value="2345"/>

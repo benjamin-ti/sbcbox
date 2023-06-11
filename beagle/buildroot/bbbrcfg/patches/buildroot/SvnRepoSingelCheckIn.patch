@@ -1,0 +1,65 @@
+Index: boot/uboot/uboot.mk
+===================================================================
+--- boot/uboot/uboot.mk	(revision 1687)
++++ boot/uboot/uboot.mk	(revision 1688)
+@@ -218,13 +218,25 @@
+ UBOOT_PATCH = $(filter ftp://% http://% https://%,$(UBOOT_PATCHES))
+ 
+ define UBOOT_APPLY_LOCAL_PATCHES
+-	for p in $(filter-out ftp://% http://% https://%,$(UBOOT_PATCHES)) ; do \
+-		if test -d $$p ; then \
+-			$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
+-		else \
+-			$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
+-		fi \
+-	done
++	if [ -n "$$CREATE_SVN_REPOS" ]; then \
++		if [ "$$CREATE_SVN_REPOS" == "0" ]; then \
++			export NO_PATCH=1 ; \
++		fi ; \
++		if [ "$$CREATE_SVN_REPOS" == "2" ]; then \
++			export SVN_PATCH=1 ; \
++		fi ; \
++	fi ; \
++	if [ -z "$$NO_PATCH" ]; then \
++		for p in $(filter-out ftp://% http://% https://%,$(UBOOT_PATCHES)) ; do \
++			if test -d $$p ; then \
++				$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
++			else \
++				$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
++			fi \
++		done ; \
++	fi ; \
++	unset NO_PATCH ; \
++	unset SVN_PATCH
+ endef
+ UBOOT_POST_PATCH_HOOKS += UBOOT_APPLY_LOCAL_PATCHES
+ 
+Index: support/scripts/apply-patches.sh
+===================================================================
+--- support/scripts/apply-patches.sh	(revision 1687)
++++ support/scripts/apply-patches.sh	(revision 1688)
+@@ -124,6 +124,23 @@
+         echo "Patch failed!  Please fix ${patch}!"
+         exit 1
+     fi
++    if [[ ${path} == /* ]]; then
++        if [ -n "$SVN_PATCH" ] ; then
++        	CUR_DIR=$PWD
++            cd "${builddir}"
++
++            readarray -t files < <(${uncomp} "${path}/$patch" | patch --dry-run -R -p1 -E -d "${builddir}" | awk '//{printf("%s\n",$3);}')
++            for line in "${files[@]}"; do
++                svn add "$line" 2>/dev/null || true
++            done
++
++            echo "svn commit . --force-log -m \"${path}/$patch\""
++            svn up
++            svn commit . --force-log -m "${path}/$patch"
++
++            cd $CUR_DIR
++        fi
++    fi
+ }
+ 
+ function scan_patchdir {

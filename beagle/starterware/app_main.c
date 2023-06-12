@@ -51,10 +51,13 @@
 #include "cache.h"
 #include "mmu.h"
 #include "example_utils_mmu.h"
-#include "console_utils.h"
+#include "utils/console_utils.h"
 
 #include <dma.h>
 #include <dma_utils.h>
+
+#include <interrupt.h>
+#include <am335x/chipdb_defs.h>
 
 /* Application header files */
 #include "gpio_app.h"
@@ -120,7 +123,8 @@ static void GpioAppDelay(volatile uint32_t count);
 /** \breif Structure holding the default values of use case structure. */
 static const gpioAppLedCfg_t GPIOAPPLEDCFG_DEFAULT =
 {
-    0x6FFFFFU     /* delay */
+//    0x6FFFFFU     // delay with Cache
+	0x1FFFF     // delay without Cache
 };
 
 /** \brief Global object for the LED use case information. */
@@ -128,6 +132,9 @@ static gpioAppLedCfg_t gLedAppCfg;
 
 /** \brief Global object for the GPIO IP configuration. */
 static gpioAppPinObj_t gGpioAppCfg;
+
+static gpioAppPinObj_t gGpioAppPin0_7;
+static gpioAppPinObj_t gGpioAppPin0_20;
 
 /* ========================================================================== */
 /*                          Function Definitions                              */
@@ -183,11 +190,9 @@ static int32_t DMAMemCopy(uint32_t dmaType,
                         uint32_t instNum,
                         uint8_t *pSrcBuf,
                         uint8_t *pDstBuf,
-                        uint32_t noOfBytes)
+                        uint32_t noOfBytes, uint32_t paRamMappingSet, uint32_t chNum)
 {
     int32_t retStat = E_FAIL;
-    uint32_t xferIdx = 0U;
-    uint32_t chNum = 0U;
     dmaUtilsDataObj_t srcDataObj = DMA_UTILS_DATA_DEFAULT;
     dmaUtilsDataObj_t dstDataObj = DMA_UTILS_DATA_DEFAULT;
     dmaUtilsXferObj_t xferObj = DMA_UTILS_XFER_DEFAULT;
@@ -222,15 +227,15 @@ static int32_t DMAMemCopy(uint32_t dmaType,
         xferObj.linkEnable = TRUE;
         xferObj.nxtXferIdx = 0U;
 
-        retStat = DMAUtilsDataXferConfig(dmaType, instNum, xferIdx, &xferObj);
+        retStat = DMAUtilsDataXferConfig(dmaType, instNum, paRamMappingSet, &xferObj);
     }
 
     if(S_PASS == retStat)
     {
-        chObj.xferIdx = xferIdx;
+        chObj.xferIdx = paRamMappingSet;
         chObj.queueNum = 0U;
         chObj.intrEnable = TRUE;
-        chObj.triggerType = DMA_XFER_TRIGGER_TYPE_MANUAL;
+        chObj.triggerType = DMA_XFER_TRIGGER_TYPE_EVENT;
         chObj.callBack = &DMAMemCopyCallBack;
 
         retStat = DMAUtilsChConfig(dmaType, instNum, chNum, &chObj);
@@ -244,9 +249,78 @@ static int32_t DMAMemCopy(uint32_t dmaType,
     return retStat;
 }
 
+static void GPIOIntr(uint32_t intrId, uint32_t cpuId, void* pUserParam)
+{
+    CONSOLEUtilsPrintf("GPIOIntr\n");
+    GPIOIntrClear(gGpioAppPin0_20.instAddr, 0, gGpioAppPin0_20.pinNum);
+}
+
+static int32_t GPIOIntrConfig(void)
+{
+    /* Precondition : Enable ARM interrupt control and initialise the Interrupt
+    Controller. */
+
+    /* local Structure which holds the Interrupt parameters. */
+    intcIntrParams_t intrParams;
+    int32_t returnVal = S_PASS;
+    intrParams.triggerType = INTC_TRIG_RISING_EDGE;
+
+    /* Currently hard coded priority number */
+    intrParams.priority = 0x20U;
+    intrParams.pFnIntrHandler = GPIOIntr;
+    /* Pointer to the app object being passed to handler */
+    intrParams.pUserParam = NULL;
+    /* Currently hard coded - non secure mode */
+    intrParams.isIntrSecure = FALSE;
+
+    returnVal = INTCConfigIntr(96, &intrParams, FALSE);
+
+    return (returnVal);
+}
+
+static void XdmaEventIntr1(uint32_t intrId, uint32_t cpuId, void* pUserParam)
+{
+    CONSOLEUtilsPrintf("XdmaEventIntr1\n");
+    GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+    INTCClearIntr(124);
+}
+
+
+
+#define CTRLMOD_BASE    0x44e10000
+#define TPPC_EVT_MUX_32_35  (volatile unsigned*)(CTRLMOD_BASE+0xFB0)
+
+
+static int32_t XdmaEventIntr1Config(void)
+{
+    *TPPC_EVT_MUX_32_35 = 29-1;
+
+    /* Precondition : Enable ARM interrupt control and initialise the Interrupt
+    Controller. */
+
+    /* local Structure which holds the Interrupt parameters. */
+    intcIntrParams_t intrParams;
+    int32_t returnVal = S_PASS;
+    intrParams.triggerType = INTC_TRIG_RISING_EDGE;
+
+    /* Currently hard coded priority number */
+    intrParams.priority = 0x20U;
+    intrParams.pFnIntrHandler = XdmaEventIntr1;
+    /* Pointer to the app object being passed to handler */
+    intrParams.pUserParam = NULL;
+    /* Currently hard coded - non secure mode */
+    intrParams.isIntrSecure = FALSE;
+
+    returnVal = INTCConfigIntr(124, &intrParams, FALSE);
+
+    return (returnVal);
+}
+
+
 int main()
 {
     int32_t status = S_PASS;
+    uint32_t ui32Pins;
 
     /* Enable cache memory and MMU */
 //    MMUConfigAndEnable();
@@ -258,6 +332,8 @@ int main()
      */
     gLedAppCfg  = GPIOAPPLEDCFG_DEFAULT;
     gGpioAppCfg = GPIOAPPPINOBJ_DEFAULT;
+    gGpioAppPin0_7 = GPIOAPPPINOBJ_DEFAULT;
+    gGpioAppPin0_20 = GPIOAPPPINOBJ_DEFAULT;
 
     status = BOARDInit(NULL);
 
@@ -275,20 +351,48 @@ int main()
     BOARDPrintInfo();
 
 
-    uint8_t* pui8SrcBuf = "hello";
+    uint8_t* pui8SrcHelloBuf = "hello";
+    uint8_t* pui8SrcByeBuf = "goodbye";
     uint8_t pui8DestBuf[10];
 
-    DMAUtilsInit(0, 0, NULL);
-    DMAMemCopy(0, 0, pui8SrcBuf, pui8DestBuf, 5);
+    memset(pui8DestBuf, 0, 10);
+
+    DMAUtilsInit(0, 0, NULL);     //             len, PaSet, ChNum
+//    DMAMemCopy(0, 0, pui8SrcHelloBuf, pui8DestBuf, 5,     1,    22);
+    DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 7,     2,    32);
 //    memcpy(pui8DestBuf, pui8SrcBuf, 5);
 
-/*
     // Get board info
     status = GpioAppBoardInfoGet(&gGpioAppCfg);
     if (S_PASS == status)
     {
         // Get SoC info
         GpioAppSocInfoGet(&gGpioAppCfg);
+
+        gGpioAppPin0_7.pinNum = 7;
+        gGpioAppPin0_7.instNum = 0;
+        gGpioAppPin0_7.instAddr = 0x44E07000;
+        GPIOAppInit(&gGpioAppPin0_7);
+
+        gGpioAppPin0_20.pinNum = 20;
+        gGpioAppPin0_20.instNum = 0;
+        gGpioAppPin0_20.instAddr = 0x44E07000;
+        gGpioAppPin0_20.pinCfg.dir = GPIO_DIRECTION_INPUT;
+//        gGpioAppPin0_20.pinCfg.debounceEnable;
+//        gGpioAppPin0_20.pinCfg.debounceTime;
+        gGpioAppPin0_20.pinCfg.intrEnable = TRUE;
+        gGpioAppPin0_20.pinCfg.intrType = GPIO_INTR_MASK_RISE_EDGE;
+        gGpioAppPin0_20.pinCfg.intrLine = 0;
+//        gGpioAppPin0_20.pinCfg.wakeEnable;
+//        gGpioAppPin0_20.pinCfg.wakeLine;
+        GPIOAppInit(&gGpioAppPin0_20);
+
+//        GPIOIntrConfig();
+        XdmaEventIntr1Config();
+
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+
+        ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
 
         // GPIO clock/pin mux and IP configuration
         GPIOAppInit(&gGpioAppCfg);
@@ -304,7 +408,6 @@ int main()
     {
         CONSOLEUtilsPrintf("This example is not supported on this board!\n");
     }
-*/
 
     return (S_PASS);
 }

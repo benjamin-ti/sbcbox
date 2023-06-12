@@ -1,0 +1,19 @@
+Debug U-Boot
+#############
+
+1. rm -rf build/uboot-2020.01
+2. make uboot-configure
+3. Edit build/uboot-2020.01/config.mk
+   PLATFORM_CPPFLAGS := -g
+   oder
+   PLATFORM_CPPFLAGS := -g -DDEBUG
+   if you want debug messages
+4. make
+5. Edit QEmuVexUboot1.launch and set paths correct
+6. Create new Eclipse c-Makefile-Project in build/uboot-2020.01
+5. ./qemu_vex_uboot_dbg.sh
+6. Launch in Eclipse (QEmuVexUboot_*)
+7. If it does not stop in QEmuVexUboot_AfterRelocate then
+   check relocate address with bdinfo on uboot console
+   and update uboot_relocate.gdb
+

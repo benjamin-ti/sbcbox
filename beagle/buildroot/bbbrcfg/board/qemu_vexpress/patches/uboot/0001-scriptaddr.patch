@@ -1,0 +1,13 @@
+Index: include/configs/vexpress_common.h
+===================================================================
+--- a/include/configs/vexpress_common.h	(revision 1)
++++ b/include/configs/vexpress_common.h	(working copy)
+@@ -181,7 +181,7 @@
+ 		"ramdisk_addr=0x44800000\0" \
+ 		"maxramdisk=0x1800000\0" \
+ 		"pxefile_addr_r=0x88000000\0" \
+-		"scriptaddr=0x88000000\0" \
++		"scriptaddr=0x60008000\0" \
+ 		"kernel_addr_r=0x80008000\0"
+ #elif defined(CONFIG_VEXPRESS_EXTENDED_MEMORY_MAP)
+ #define CONFIG_PLATFORM_ENV_SETTINGS \

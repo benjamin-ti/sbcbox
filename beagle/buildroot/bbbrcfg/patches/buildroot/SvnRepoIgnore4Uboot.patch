@@ -7,7 +7,7 @@ Index: boot/uboot/uboot.mk
  	svn add . --force > /dev/null; \
  	svn commit . -m "Import existing codebase"; \
 -	printf ".*\n*.su\n" > ignore.txt; \
-+	printf ".*\nMLO*\nu-boot*\n*.su\n*.map\n*.efi\nhello_world*\nautoconf.mk*\nspl\narch\nconfig\ngenerated\ncommon\nlib\nasm-offsets.s\nconfig.h\nfixdep\nconf\nfdtgrep\ngen_eth_addr\ngen_ethaddr_crc\nimg2srec\nmkenvimage\nmkimage\nproftool\ndumpimage\nenvcrc\nzconf.*.c\nignore.txt\n" > ignore.txt; \
++	printf ".*\nMLO*\nu-boot*\n*.su\n*.map\n*.efi\nhello_world*\nsmc911x*\nautoconf.mk*\nspl\narch\nconfig\ngenerated\ncommon\nlib\nasm-offsets.s\nconfig.h\nfixdep\nconf\nfdtgrep\ngen_eth_addr\ngen_ethaddr_crc\nimg2srec\nmkenvimage\nmkimage\nproftool\ndumpimage\nenvcrc\nzconf.*.c\nembedded.c\nspl_size_limit\nignore.txt\n" > ignore.txt; \
  	svn propset svn:global-ignores -F ignore.txt .; \
  	fi
  endef

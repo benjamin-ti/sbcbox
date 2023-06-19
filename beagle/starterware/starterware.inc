@@ -9,6 +9,8 @@
 #else
 #ifeq ($(DEST_ROOT),)
 
+# Pinmux in board/am335x/am335x_beagleboneblack_pinmux_data.c: gGpio0PinCfg
+
 export starterware_PATH=/home/user/ti/processor-sdk-rtos-am335x-evm-06.03.00.106/pdk_am335x_1_0_17/packages/ti/starterware/
 export STARTERWARE_ROOTDIR=/home/user/ti/processor-sdk-rtos-am335x-evm-06.03.00.106/pdk_am335x_1_0_17/packages/ti/starterware/
 export PLATFORM=am335x-evm

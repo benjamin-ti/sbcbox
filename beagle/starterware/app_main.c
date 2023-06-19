@@ -253,6 +253,10 @@ static void GPIOIntr(uint32_t intrId, uint32_t cpuId, void* pUserParam)
 {
     CONSOLEUtilsPrintf("GPIOIntr\n");
     GPIOIntrClear(gGpioAppPin0_20.instAddr, 0, gGpioAppPin0_20.pinNum);
+#define AM335X_GPIO0_BASE 0x44E07000
+    volatile unsigned* gpeoi;
+    gpeoi = (volatile unsigned*)(AM335X_GPIO0_BASE+0x20);
+    *gpeoi = 0;
 }
 
 static int32_t GPIOIntrConfig(void)
@@ -321,6 +325,7 @@ int main()
 {
     int32_t status = S_PASS;
     uint32_t ui32Pins;
+    int32_t retStat = E_FAIL;
 
     /* Enable cache memory and MMU */
 //    MMUConfigAndEnable();
@@ -357,10 +362,7 @@ int main()
 
     memset(pui8DestBuf, 0, 10);
 
-    DMAUtilsInit(0, 0, NULL);     //             len, PaSet, ChNum
-//    DMAMemCopy(0, 0, pui8SrcHelloBuf, pui8DestBuf, 5,     1,    22);
-    DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 7,     2,    32);
-//    memcpy(pui8DestBuf, pui8SrcBuf, 5);
+    DMAUtilsInit(0, 0, NULL);
 
     // Get board info
     status = GpioAppBoardInfoGet(&gGpioAppCfg);
@@ -387,12 +389,24 @@ int main()
 //        gGpioAppPin0_20.pinCfg.wakeLine;
         GPIOAppInit(&gGpioAppPin0_20);
 
-//        GPIOIntrConfig();
-        XdmaEventIntr1Config();
+        GPIOIntrConfig();
+//        XdmaEventIntr1Config();
+                                      //             len, PaSet, ChNum
+        DMAMemCopy(0, 0, pui8SrcHelloBuf, pui8DestBuf, 5,     1,    22);
+    //    DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 7,     2,    32);
+    //    memcpy(pui8DestBuf, pui8SrcBuf, 5);
 
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
-
         ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
+//        if(S_PASS == retStat)
+        {
+            memset(pui8DestBuf, 0, 10);
+            DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 7,     2,    22);
+            GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+            ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
+        }
 
         // GPIO clock/pin mux and IP configuration
         GPIOAppInit(&gGpioAppCfg);

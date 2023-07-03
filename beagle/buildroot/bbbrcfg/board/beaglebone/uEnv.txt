@@ -1,6 +1,16 @@
 bootpart=0:1
 devtype=mmc
+
 fdtfile=am335x-boneblack-bt.dtb
+# fdtfile=am335x-boneblack-4DCap-bt-osdred.dtb
+# fdtfile=am335x-boneblack-4DCap-bt.dtb
+# fdtfile=am335x-boneblack-bt.dtb
+# fdtfile=am335x-boneblack.dtb
+# fdtfile=am335x-osd3358-sm-red.dtb
+
+# enable_uboot_overlays=1
+# dtb_overlay=cvfpgakiti.dtbo
+
 bootdir=
 bootfile=zImage
 bootpartition=mmcblk0p2

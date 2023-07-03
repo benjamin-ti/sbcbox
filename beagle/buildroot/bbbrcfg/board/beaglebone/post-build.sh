@@ -8,10 +8,13 @@ then
 fi
 
 if [ -n "$BENSBBB_DTB" ]; then
-    awk -v dtb=$BENSBBB_DTB '{if (/fdtfile/) printf("fdtfile=%s\n", dtb); else print $0}' $BOARD_DIR/uEnv.txt > $BINARIES_DIR/uEnv.txt
+    awk -v dtb=$BENSBBB_DTB '{if (/^fdtfile/) printf("fdtfile=%s\n", dtb); else print $0}' $BOARD_DIR/uEnv.txt > $BINARIES_DIR/uEnv.txt
 else
     cp $BOARD_DIR/uEnv.txt $BINARIES_DIR/uEnv.txt
 fi
 ln -srf /usr/share/fonts/dejavu ${TARGET_DIR}/usr/lib/fonts
 
-echo "/dev/mmcblk0p1	/boot		vfat	defaults	0	2" >> ${TARGET_DIR}/etc/fstab
+mkdir ${TARGET_DIR}/boot
+awk '!/^\/dev\/mmcblk0p1/{print $0;}' ${TARGET_DIR}/etc/fstab > ${TARGET_DIR}/etc/fstab.tmp
+echo "/dev/mmcblk0p1	/boot		vfat	defaults	0	2" >> ${TARGET_DIR}/etc/fstab.tmp
+mv ${TARGET_DIR}/etc/fstab.tmp ${TARGET_DIR}/etc/fstab

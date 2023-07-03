@@ -43,8 +43,16 @@
 };
 
 / {
-    bens {
-	    BENS_HELLO = __TIMESTAMP__;
+    CvFpgaKiTi {
+        compatible = "CvFpgaKiTi";
+        status = "okay";
+//        dmas = <&edma 22 0>;
+        dmas = <&edma_xbar 20 0 29>;
+        dma-names = "kiti_evt";
+    };
+
+    chosen {
+        cvfpgakiti = __TIMESTAMP__;
     };
 };
 

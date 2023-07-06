@@ -3,6 +3,7 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/pinctrl/am33xx.h>
+#include <dt-bindings/board/am335x-bone-pins.h>
 
 / {
     /*
@@ -25,16 +26,25 @@
     fragment@1 {
         target-path="/";
         __overlay__ {
-            gpevt {
+            kmfpga {
                 compatible = "kmfpga";
                 status = "okay";
-                dmas = <&edma 22 0>;
-//                dmas = <&edma_xbar 20 0 31>;
+//                dmas = <&edma 22 0>;
+                dmas = <&edma_xbar 20 0 29>;
                 dma-names = "kmfpga_evt";
             };
         };
     };
 
+/*
+    fragment@2 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            P9_41_default_pin: pinmux_P9_41_default_pin { pinctrl-single,pins = <
+                P9_41( PIN_OUTPUT_PULLDOWN | INPUT_EN | MUX_MODE0) >; };
+        };
+    };
+*/
     /*
      * Free up the pins used by the cape from the pinmux helpers.
      */

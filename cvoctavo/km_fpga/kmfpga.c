@@ -24,6 +24,9 @@
 
 #include <linux/gpio.h>
 #include <linux/interrupt.h>
+# include <linux/irqdesc.h>
+extern struct irq_desc *irq_to_desc(unsigned int irq);
+struct irq_desc *desc;
 
 /*
 dma_test {
@@ -119,7 +122,7 @@ dma_addr_t  busDestClr = (AM335X_GPIO0_BASE+0x190);
 
 unsigned int uiDMACounter = 0;
 
-unsigned int gpioIrqNumber;
+unsigned int dmaEvIrqNumber = 0;
 void __iomem *gpio_map;
 
 static int gpioHardcore(void)
@@ -150,6 +153,7 @@ static int gpioHardcore(void)
 //    *gpclr = 0x00000080;
 //    printk("Del\n");
 
+/*
     gpio_map2 = ioremap(AM335X_GPIO2_BASE, 4096);
     if (!gpio_map2) {
         printk("Failed to ioremap GPIO2\n");
@@ -162,7 +166,7 @@ static int gpioHardcore(void)
     printk("GPIO2_IN: %x\n", *gpin);
 
     iounmap(gpio_map2);
-
+*/
     return 0;
 }
 
@@ -296,13 +300,20 @@ static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_
 }
 
 /*=========================================================================*/
+static irq_handler_t xdma_event_intr1_handler(unsigned int irq, void *dev_id, struct pt_regs *regs)
+{
+    printk("xdmaev intr1 occured in rising edge\n");
+    return(irq_handler_t) IRQ_HANDLED;
+}
+
+/*=========================================================================*/
 static int kmfpga_probe(struct platform_device *pdev)
 {
-    u32* src;
-    u32* dest;
+    char* src;
+    char* dest;
     dma_addr_t  busDest;
 
-    size_t len = 0x4;
+    size_t len = 6;
     int i;
     int ret;
 
@@ -318,34 +329,67 @@ static int kmfpga_probe(struct platform_device *pdev)
     usleep_range(2000*1000, 2000*1000);
 
     // Handle GPIO
-    gpioIrqNumber = gpio_to_irq(20);
-    pr_info("gpioIrqNumber = %d\n", gpioIrqNumber);
-    if ( request_irq(gpioIrqNumber, (irq_handler_t)gpio_irq_handler,
+/*
+    dmaEvIrqNumber = gpio_to_irq(20);
+    pr_info("dmaEvIrqNumber = %d\n", dmaEvIrqNumber);
+    if ( request_irq(dmaEvIrqNumber, (irq_handler_t)gpio_irq_handler,
                      IRQF_TRIGGER_RISING,
-                     "kmmotor_gpio_handler", // Used in /proc/interrupts to identify the owner
+                     "kmfpga_gpio_handler", // Used in /proc/interrupts to identify the owner
                      NULL) )
     {
         pr_err("cannot register IRQ for GPIO");
         return -EAGAIN;
     }
+*/
 
+/*
+    // find my irq number
+    for(i=0;i<128;i++){   // i is the linux irq number
+        desc = irq_to_desc(i);
+        if (desc) {
+            printk("irq_desc(%d)->irq_data.hwirq = %ld\n", i, desc->irq_data.hwirq);
+            if (desc->irq_data.hwirq == 124) {
+                printk("found: irq_desc(%d)->irq_data.hwirq = %ld\n", i, desc->irq_data.hwirq);
+                break;
+            }
+        }
+        if (i == 127) {
+            printk("couldn't find irq number..\n");
+        }
+    }
+*/
+/*
+    // Handle XDMA_EVENT_INTR1
+    dmaEvIrqNumber = 124; // Ich glaub nicht, dass das so stimmt (siehe oben mit desc-find)
+    if ( request_irq(dmaEvIrqNumber, (irq_handler_t)xdma_event_intr1_handler,
+                     IRQF_TRIGGER_RISING,
+                     "kmfpga_dmaev_intr1_handler", // Used in /proc/interrupts to identify the owner
+                     NULL) )
+    {
+        pr_err("cannot register IRQ for XDMA_EVENT_INTR1");
+        return -EAGAIN;
+    }
+*/
     init_completion(&dma_m2m_ok);
 
     //src = kzalloc(len, GFP_KERNEL | GFP_DMA);
-    src = dma_alloc_coherent(&pdev->dev, len, &busSrc, GFP_KERNEL);
+    src = dma_alloc_coherent(&pdev->dev, len+1, &busSrc, GFP_KERNEL);
     //dest = kzalloc(len, GFP_KERNEL | GFP_DMA);
-    dest = dma_alloc_coherent(&pdev->dev, len, &busDest, GFP_KERNEL);
+    dest = dma_alloc_coherent(&pdev->dev, len+1, &busDest, GFP_KERNEL);
 //    dest = gpset;
 //    busDest = busDestSet;
 
+    snprintf(src, len+1, "hellox\nworldx\n");
+    memset(dest, 0, len+1);
+/*
     for (i=0; i<len/4; i++)
     {
     	src[i] = 0x00000080;
         dest[i] = 0xAA55DEAD;
     }
-
-    printk("src: %x\n", src[0]);
-    printk("dest: %x\n", dest[0]);
+*/
+    printk("src:  %s\n", src);
+    printk("dest: %s\n", dest);
 
 /*
     dma_cap_zero(mask);
@@ -358,10 +402,12 @@ static int kmfpga_probe(struct platform_device *pdev)
     }
 */
 
+    *gpclr = 0x00000080;
+
     // dma_ch = dma_request_chan(&pdev->dev, "gpioevt");
     dma_ch = dma_request_slave_channel(&pdev->dev, "kmfpga_evt");
     if (!dma_ch) {
-        printk("no gpio channel for gpevt\n");
+        printk("no gpio channel for kmfpga\n");
         return -EAGAIN;
     }
     printk("got dma_ch = 0x%x\n", (unsigned int)dma_ch);
@@ -401,6 +447,7 @@ static int kmfpga_probe(struct platform_device *pdev)
 	}
 */
 
+/*
     if (dma_ch->device->device_prep_dma_memcpy == NULL)
     {
         printk("device_prep_dma_memcpy = NULL\n");
@@ -414,6 +461,18 @@ static int kmfpga_probe(struct platform_device *pdev)
     	goto err;
     }
     dma_m2m_desc->callback = dma_memcpy_callback;
+*/
+    struct dma_async_tx_descriptor *edma_prep_dma_fpga(
+        struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
+        size_t len, size_t pset_len, unsigned long tx_flags);
+    dma_m2m_desc = edma_prep_dma_fpga(dma_ch,
+            busDest, busSrc, len/2, len, 0);
+    if (!dma_m2m_desc) {
+        printk("device_prep_dma_memcpy failed\n");
+        goto err;
+    }
+    dma_m2m_desc->callback = dma_memcpy_callback;
+
 
     cookie = dmaengine_submit(dma_m2m_desc);
 //    cookie = dma_m2m_desc->tx_submit(dma_m2m_desc); //submit the desc
@@ -422,8 +481,22 @@ static int kmfpga_probe(struct platform_device *pdev)
         goto err;
     }
 
+//    dma_async_issue_pending(dma_ch);
+    void edma_issue_pending_fpga(struct dma_chan *chan);
+    edma_issue_pending_fpga(dma_ch);
+
+    printk("b41src:  %s\n", src);
+    printk("b41dest: %s\n", dest);
+    *gpset = 0x00000080;
+    printk("b42src:  %s\n", src);
+    printk("b42dest: %s\n", dest);
+    *gpclr = 0x00000080;
+    usleep_range(1000, 1000);
+    *gpset = 0x00000080;
+    printk("src:  %s\n", src);
+    printk("dest: %s\n", dest);
+
     printk("wait for dma fin\n");
-    dma_async_issue_pending(dma_ch);
     wait_for_completion(&dma_m2m_ok);
 
 /*
@@ -433,7 +506,7 @@ static int kmfpga_probe(struct platform_device *pdev)
 */
     // 2. DMA attempt
     dma_m2m_desc = dma_ch->device->device_prep_dma_memcpy(dma_ch,
-    		busDestSet, busSrc, len, DMA_CTRL_REUSE);
+    		busDestSet, busSrc, len, 0);
     if (!dma_m2m_desc) {
     	printk("device_prep_dma_memcpy failed\n");
     	goto err;
@@ -450,10 +523,12 @@ static int kmfpga_probe(struct platform_device *pdev)
     printk("wait for dma2 fin\n");
     dma_async_issue_pending(dma_ch);
     wait_for_completion(&dma_m2m_ok);
-
-
+/*
     printk("src: %x\n", src[0]);
     printk("dest: %x\n", dest[0]);
+*/
+    printk("src:  %s\n", src);
+    printk("dest: %s\n", dest);
 
     dma_free_coherent(&pdev->dev, len, src, busSrc);
     dma_free_coherent(&pdev->dev, len, dest, busDest);
@@ -473,7 +548,9 @@ err:
 		dma_ch = NULL;
 	}
 
-	free_irq(gpioIrqNumber, NULL);
+	if (dmaEvIrqNumber != 0) {
+	    free_irq(dmaEvIrqNumber, NULL);
+	}
 
     return -1;
 }
@@ -483,7 +560,9 @@ static int kmfpga_remove(struct platform_device *pdev)
 {
     printk("kmfpga_remove\n");
 
-    free_irq(gpioIrqNumber, NULL);
+    if (dmaEvIrqNumber != 0) {
+        free_irq(dmaEvIrqNumber, NULL);
+    }
 
 	if (dma_ch != NULL) {
 		dma_release_channel(dma_ch);

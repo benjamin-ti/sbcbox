@@ -210,18 +210,18 @@ static int32_t DMAMemCopy(uint32_t dmaType,
         xferObj.pDst = &dstDataObj;
 
         xferObj.pSrc->addr = (uint32_t)pSrcBuf;
-        xferObj.pSrc->packetActSize = noOfBytes;
-        xferObj.pSrc->frameActSize = 1U;
+        xferObj.pSrc->packetActSize = noOfBytes/2;
+        xferObj.pSrc->frameActSize = 2U;
         xferObj.pSrc->blockSize = 1U;
         xferObj.pSrc->addrMode = DMA_XFER_DATA_ADDR_MODE_INC;
-        xferObj.pSrc->syncMode = DMA_UTILS_DATA_SYNC_BLOCK;
+        xferObj.pSrc->syncMode = DMA_UTILS_DATA_SYNC_PACKET;
 
         xferObj.pDst->addr = (uint32_t)pDstBuf;
         xferObj.pDst->packetActSize = 1U;
         xferObj.pDst->frameActSize = 1U;
         xferObj.pDst->blockSize = 1U;
         xferObj.pDst->addrMode = DMA_XFER_DATA_ADDR_MODE_INC;
-        xferObj.pDst->syncMode = DMA_UTILS_DATA_SYNC_BLOCK;
+        xferObj.pDst->syncMode = DMA_UTILS_DATA_SYNC_PACKET;
 
         xferObj.intrConfig = DMA_UTILS_DATA_SYNC_MASK_BLOCK;
         xferObj.linkEnable = TRUE;
@@ -297,8 +297,6 @@ static void XdmaEventIntr1(uint32_t intrId, uint32_t cpuId, void* pUserParam)
 
 static int32_t XdmaEventIntr1Config(void)
 {
-    *TPPC_EVT_MUX_32_35 = 29;
-
     /* Precondition : Enable ARM interrupt control and initialise the Interrupt
     Controller. */
 
@@ -356,8 +354,8 @@ int main()
     BOARDPrintInfo();
 
 
-    uint8_t* pui8SrcHelloBuf = "hello";
-    uint8_t* pui8SrcByeBuf = "goodbye";
+    uint8_t* pui8SrcHelloBuf = "hellox";
+    uint8_t* pui8SrcByeBuf = "godbye";
     uint8_t pui8DestBuf[10];
 
     memset(pui8DestBuf, 0, 10);
@@ -390,20 +388,23 @@ int main()
         GPIOAppInit(&gGpioAppPin0_20);
 
 //        GPIOIntrConfig();
-        XdmaEventIntr1Config();
+        *TPPC_EVT_MUX_32_35 = 29;
+//        XdmaEventIntr1Config();
                                       //             len, PaSet, ChNum
-        DMAMemCopy(0, 0, pui8SrcHelloBuf, pui8DestBuf, 5,     1,    32); // 22
+        DMAMemCopy(0, 0, pui8SrcHelloBuf, pui8DestBuf, 6,     1,    32); // 22
     //    DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 7,     2,    22);
     //    memcpy(pui8DestBuf, pui8SrcBuf, 5);
 
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
         ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
 
 //        if(S_PASS == retStat)
         {
             memset(pui8DestBuf, 0, 10);
-            DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 7,     2,    32);
+            DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 6,     2,    32);
             GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
             ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
         }

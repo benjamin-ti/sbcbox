@@ -1,15 +1,22 @@
 #include <linux/module.h>
 
-int kmhello_init(void)
+/*=========================================================================*/
+int __init kmhello_init(void)
 {
-    printk("init_module\n");
+    printk("kmhello_init\n");
     return 0;
 }
 
-void kmhello_cleanup(void)
+/*=========================================================================*/
+void __exit kmhello_exit(void)
 {
-    printk("cleanup_module\n");
+    printk("kmhello_exit\n");
 }
 
+/*=========================================================================*/
 module_init(kmhello_init);
-module_exit(kmhello_cleanup);
+module_exit(kmhello_exit);
+
+/*=========================================================================*/
+MODULE_AUTHOR("Benjamin Tisler");
+MODULE_LICENSE("GPL v2");

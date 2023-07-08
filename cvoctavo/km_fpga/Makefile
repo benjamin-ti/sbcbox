@@ -1,6 +1,8 @@
 BOARDIP=10.102.12.42
-USER=debian
-PASSWD=temppwd
+# USER=debian
+# PASSWD=temppwd
+USER=root
+PASSWD=root
 
 export ARCH:=arm
 # export CROSS_COMPILE:=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildroot/bin/arm-buildroot-linux-gnueabihf-
@@ -12,8 +14,9 @@ export KM=kmfpga
 # KDIR ?= /lib/modules/$(shell uname -r)/build
 # KDIR ?= /home/user/wsCppSys/vcoctavobr_outStd/build/linux-4.19.36
 # KDIR ?= /opt/bbb_debian10_lx4_19rt_sysroot/lib/modules/4.19.94-ti-rt-r73/build
-KDIR ?= /home/user/opt/linux-headers-4.19.94-ti-rt-r73
+# KDIR ?= /home/user/opt/linux-headers-4.19.94-ti-rt-r73
 # KDIR ?= /home/user/wsCppSys/bbkernel/linux
+KDIR ?= /home/user/wsSbcBox/bbbrout_mybbb/build/linux-custom
 BUILD_DIR ?= $(PWD)/O
 BUILD_DIR_MAKEFILE ?= $(PWD)/O/Makefile
 

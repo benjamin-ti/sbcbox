@@ -28,6 +28,8 @@
 extern struct irq_desc *irq_to_desc(unsigned int irq);
 struct irq_desc *desc;
 
+#define KMFPGA_AS_KITI
+
 /*
 dma_test {
 	compatible = "cet,am335x-dma-test";
@@ -44,8 +46,13 @@ static struct dma_chan *dma_ch;
 
 static struct completion dma_m2m_ok;
 
+static char* src;
+static char* dest;
 static dma_addr_t  busSrc;
+static dma_addr_t  busDest;
+size_t len = 6;
 
+/*
 static int kmmemcpy(void)
 {
     u16* src;
@@ -89,6 +96,7 @@ static int kmmemcpy(void)
 
     return 0;
 }
+*/
 
 static void dev_release(struct device *dev)
 {
@@ -235,8 +243,7 @@ static void dma_clrgpio_callback(void *data)
 	}
 }
 
-/*
-static int dma_init(void)
+static void dma_memcpy(struct platform_device *pdev)
 {
 	dma_cap_mask_t mask;
 	struct dma_slave_config dma_cfg;
@@ -248,6 +255,7 @@ static int dma_init(void)
     dma_cap_zero(mask);
     dma_cap_set(DMA_MEMCPY, mask);
     dma_ch = dma_request_channel(mask, NULL, NULL);
+//    dma_ch = dma_request_slave_channel(&pdev->dev, "cvmemcpy");
     if (dma_ch == NULL)
     {
         printk("request_channel failed.\n");
@@ -262,21 +270,21 @@ static int dma_init(void)
     ret = dmaengine_slave_config(dma_ch, &dma_cfg);
     if (ret) {
     	printk("dmaengine_slave_config error\n");
-       goto err;
+       goto errcpy;
     }
     printk("dmaengine_slave_config pass\n");
 
     if (dma_ch->device->device_prep_dma_memcpy == NULL)
     {
         printk("device_prep_dma_memcpy = NULL\n");
-        goto err;
+        goto errcpy;
     }
 
     dma_m2m_desc = dma_ch->device->device_prep_dma_memcpy(dma_ch,
     								busDest, busSrc, len, 0);
     if (!dma_m2m_desc) {
     	printk("device_prep_dma_memcpy failed\n");
-    	goto err;
+    	goto errcpy;
     }
     dma_m2m_desc->callback = dma_memcpy_callback;
 
@@ -284,10 +292,27 @@ static int dma_init(void)
 //    cookie = dma_m2m_desc->tx_submit(dma_m2m_desc); //submit the desc
     if (dma_submit_error(cookie)){
         printk(KERN_INFO "Failed to do DMA tx_submit");
-        goto err;
+        goto errcpy;
+    }
+
+    printk("dma_memcpy wait\n");
+
+    dma_async_issue_pending(dma_ch);
+    wait_for_completion(&dma_m2m_ok);
+
+    printk("dma_memcpy fin\n");
+    printk("src_fin:  %s\n", src);
+    printk("dest_fin: %s\n", dest);
+
+    memset(dest, 0, len+1);
+
+errcpy:
+    if (dma_ch != NULL) {
+        dma_release_channel(dma_ch);
+        dma_ch = NULL;
     }
 }
-*/
+
 
 /*=========================================================================*/
 static irq_handler_t gpio_irq_handler(unsigned int irq, void *dev_id, struct pt_regs *regs)
@@ -309,11 +334,6 @@ static irq_handler_t xdma_event_intr1_handler(unsigned int irq, void *dev_id, st
 /*=========================================================================*/
 static int kmfpga_probe(struct platform_device *pdev)
 {
-    char* src;
-    char* dest;
-    dma_addr_t  busDest;
-
-    size_t len = 6;
     int i;
     int ret;
 
@@ -391,6 +411,8 @@ static int kmfpga_probe(struct platform_device *pdev)
     printk("src:  %s\n", src);
     printk("dest: %s\n", dest);
 
+    dma_memcpy(pdev);
+
 /*
     dma_cap_zero(mask);
     dma_cap_set(DMA_MEMCPY, mask);
@@ -404,8 +426,11 @@ static int kmfpga_probe(struct platform_device *pdev)
 
     *gpclr = 0x00000080;
 
-    // dma_ch = dma_request_chan(&pdev->dev, "gpioevt");
+#ifdef KMFPGA_AS_KITI
+    dma_ch = dma_request_slave_channel(&pdev->dev, "cvfpga");
+#else
     dma_ch = dma_request_slave_channel(&pdev->dev, "kmfpga_evt");
+#endif
     if (!dma_ch) {
         printk("no gpio channel for kmfpga\n");
         return -EAGAIN;
@@ -481,9 +506,9 @@ static int kmfpga_probe(struct platform_device *pdev)
         goto err;
     }
 
-//    dma_async_issue_pending(dma_ch);
-    void edma_issue_pending_fpga(struct dma_chan *chan);
-    edma_issue_pending_fpga(dma_ch);
+    dma_async_issue_pending(dma_ch);
+//    void edma_issue_pending_fpga(struct dma_chan *chan);
+//    edma_issue_pending_fpga(dma_ch);
 
     printk("b41src:  %s\n", src);
     printk("b41dest: %s\n", dest);
@@ -576,7 +601,11 @@ static int kmfpga_remove(struct platform_device *pdev)
 /*=========================================================================*/
 static struct of_device_id kmfpga_driver_ids[] = {
     {
+#ifdef KMFPGA_AS_KITI
+        .compatible = "CvFpgaKiTi",
+#else
         .compatible = "kmfpga",
+#endif
     }, { /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, kmfpga_driver_ids);
@@ -585,7 +614,11 @@ static struct platform_driver kmfpga_driver = {
     .probe = kmfpga_probe,
     .remove = kmfpga_remove,
     .driver = {
+#ifdef KMFPGA_AS_KITI
+        .name = "cvfpga_kiti_driver",
+#else
         .name = "kmfpga_driver",
+#endif
         .of_match_table = kmfpga_driver_ids,
     },
 };

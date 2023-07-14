@@ -90,7 +90,7 @@ void _main (void)
 
 	megos_UART0_init();
 //	megos_UART0_test();
-	megos_UART0_send_string("hello\n");
+	megos_UART0_send_string("hello");
 	serial_send_newline();
 	serial_flush();
 

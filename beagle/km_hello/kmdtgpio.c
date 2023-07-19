@@ -3,6 +3,7 @@
 #include <linux/of.h>
 #include <linux/of_platform.h>
 #include <linux/interrupt.h>
+#include <linux/delay.h>
 
 /*=========================================================================*/
 
@@ -48,23 +49,25 @@ static int kmdtgpio_probe(struct platform_device *pdev)
     struct device *dev = &pdev->dev;
     int ret;
     const char *label;
-    int my_value;
+    int irq_gpio;
+
+    struct pinctrl *p;
+    struct pinctrl_state *s;
 
     printk("probe\n");
 
     // --- Get some example variables from device tree ----------------------
-
     // Check for device properties
     if(!device_property_present(dev, "label")) {
         printk("probe - Error! Device property 'label' not found!\n");
         return -1;
     }
-    if(!device_property_present(dev, "my_value")) {
-        printk("probe - Error! Device property 'my_value' not found!\n");
+    if(!device_property_present(dev, "irq-gpio")) {
+        printk("probe - Error! Device property 'irq-gpioe' not found!\n");
         return -1;
     }
     if(!device_property_present(dev, "test-gpio")) {
-        printk("probe - Error! Device property 'my_value' not found!\n");
+        printk("probe - Error! Device property 'test-gpio' not found!\n");
         return -1;
     }
 
@@ -75,24 +78,22 @@ static int kmdtgpio_probe(struct platform_device *pdev)
         return -1;
     }
     printk("probe - label: %s\n", label);
-    ret = device_property_read_u32(dev, "my_value", &my_value);
+    ret = device_property_read_u32(dev, "irq-gpio", &irq_gpio);
     if(ret) {
         printk("probe - Error! Could not read 'my_value'\n");
         return -1;
     }
+    printk("probe - irq-gpio: %d\n", irq_gpio);
 
-    printk("probe - my_value: %d\n", my_value);
+    // --- Get gpio output from device tree ---------------------------------
     test_gpio = gpiod_get(dev, "test", GPIOD_OUT_LOW);
     if(IS_ERR(test_gpio)) {
         printk("dt_gpio - Error! Could not setup the GPIO\n");
         return -1 * IS_ERR(test_gpio);
     }
 
-    gpiod_set_value(test_gpio, 1);
-    printk("test_gpio set\n");
-
-    // Handle GPIO
-    gpioIrqNumber = gpio_to_irq(20);
+    // --- Set gpio input interrupt -----------------------------------------
+    gpioIrqNumber = gpio_to_irq(irq_gpio);
     pr_info("gpioIrqNumber = %d\n", gpioIrqNumber);
     if ( request_irq(gpioIrqNumber, (irq_handler_t)gpio_irq_handler,
                      IRQF_TRIGGER_RISING,
@@ -102,6 +103,36 @@ static int kmdtgpio_probe(struct platform_device *pdev)
         pr_err("cannot register IRQ for GPIO");
         return -1;
     }
+
+    // --- Toggle gpio for test interrupt (should not work now) -------------
+    // < 10us: use udelay
+    // 10us-20ms: use usleep_range
+    // > 20ms: use msleep
+    // msleep_interruptible(1000);
+    gpiod_set_value(test_gpio, 0);
+    msleep(50);
+    gpiod_set_value(test_gpio, 1);
+
+    // --- Pin-Ctrl ---------------------------------------------------------
+    p = devm_pinctrl_get(dev);
+    if (IS_ERR(p)) {
+        pr_err("devm_pinctrl_get failed");
+        return -1;
+    }
+    s = pinctrl_lookup_state(p, "gpio"); // or: PINCTRL_STATE_DEFAULT
+    if (IS_ERR(s)) {
+        pr_err("pinctrl_lookup_state failed");
+        return -1;
+    }
+    ret = pinctrl_select_state(p, s);
+    if (ret < 0) {
+        pr_err("pinctrl_select_state failed");
+        return -1;
+    }
+
+    // --- Rest -------------------------------------------------------------
+    gpiod_set_value(test_gpio, 1);
+    printk("test_gpio set\n");
 
     printk("probe done\n");
 

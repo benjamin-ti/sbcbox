@@ -3,6 +3,7 @@
 
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/pinctrl/am33xx.h>
+#include <dt-bindings/board/am335x-bone-pins.h>
 
 / {
 
@@ -20,14 +21,27 @@
     };
 
     fragment@1 {
+        target = <&am33xx_pinmux>;
+        __overlay__ {
+            P9_41_pin_gpio: pinmux_P9_41_gpio_pin {pinctrl-single,pins = <
+                P9_41( PIN_OUTPUT_PULLDOWN | INPUT_EN | MUX_MODE7) >; };    // xdma_event_intr1.gpio0_20
+            P9_41_pin_dmaev: pinmux_P9_41_dmaev_pin {pinctrl-single,pins = <
+                P9_41( PIN_OUTPUT_PULLDOWN | INPUT_EN | MUX_MODE0) >; };    // xdma_event_intr1.xdma_event
+        };
+    };
+
+    fragment@2 {
         target-path="/";
         __overlay__ {
             kmhello {
                 compatible = "kmhello";
                 status = "okay";
-                label = "test";
-                my_value = <12>;
+                label = "kmhello_test";
+                irq-gpio = <20>;
                 test-gpio = <&gpio0 7 GPIO_ACTIVE_HIGH>;
+                pinctrl-0 = <&P9_41_pin_dmaev>;
+                pinctrl-1 = <&P9_41_pin_gpio>;
+                pinctrl-names = "default", "gpio";
             };
         };
     };

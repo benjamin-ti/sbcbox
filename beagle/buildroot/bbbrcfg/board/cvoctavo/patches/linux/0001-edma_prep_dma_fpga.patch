@@ -1,0 +1,121 @@
+Index: drivers/dma/ti/edma.c
+===================================================================
+--- a/drivers/dma/ti/edma.c	(revision 1)
++++ b/drivers/dma/ti/edma.c	(working copy)
+@@ -1245,6 +1245,116 @@
+ 	return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
+ }
+
++struct dma_async_tx_descriptor *edma_prep_dma_fpga(
++    struct dma_chan *chan, dma_addr_t dest, dma_addr_t src,
++    size_t len, size_t pset_len, unsigned long tx_flags)
++{
++    int ret, nslots;
++    struct edma_desc *edesc;
++    struct device *dev = chan->device->dev;
++    struct edma_chan *echan = to_edma_chan(chan);
++    unsigned int width, array_size;
++
++    if (unlikely(!echan || !len))
++        return NULL;
++
++    /* Align the array size (acnt block) with the transfer properties */
++    switch (__ffs((src | dest | len))) {
++    case 0:
++        array_size = SZ_32K - 1;
++        break;
++    case 1:
++        array_size = SZ_32K - 2;
++        break;
++    default:
++        array_size = SZ_32K - 4;
++        break;
++    }
++
++    if (len < SZ_64K) {
++        /*
++         * Transfer size less than 64K can be handled with one paRAM
++         * slot and with one burst.
++         * ACNT = length
++         */
++        width = len;
++        nslots = 1;
++    } else {
++        /*
++         * Transfer size bigger than 64K will be handled with maximum of
++         * two paRAM slots.
++         * slot1: (full_length / 32767) times 32767 bytes bursts.
++         *    ACNT = 32767, length1: (full_length / 32767) * 32767
++         * slot2: the remaining amount of data after slot1.
++         *    ACNT = full_length - length1, length2 = ACNT
++         *
++         * When the full_length is multibple of 32767 one slot can be
++         * used to complete the transfer.
++         */
++        width = array_size;
++        pset_len = rounddown(len, width);
++        /* One slot is enough for lengths multiple of (SZ_32K -1) */
++        if (unlikely(pset_len == len))
++            nslots = 1;
++        else
++            nslots = 2;
++    }
++
++    edesc = kzalloc(struct_size(edesc, pset, nslots), GFP_ATOMIC);
++    if (!edesc)
++        return NULL;
++
++    edesc->pset_nr = nslots;
++    edesc->residue = edesc->residue_stat = len;
++    edesc->direction = DMA_MEM_TO_DEV;
++    edesc->echan = echan;
++
++    ret = edma_config_pset(chan, &edesc->pset[0], src, dest, 1,
++                   width, pset_len, DMA_MEM_TO_DEV);
++    if (ret < 0) {
++        kfree(edesc);
++        return NULL;
++    }
++
++    edesc->absync = ret;
++
++//  edesc->pset[0].param.opt |= ITCCHEN;
++    if (nslots == 1) {
++        /* Enable transfer complete interrupt */
++        edesc->pset[0].param.opt |= TCINTEN;
++    } else {
++        /* Enable transfer complete chaining for the first slot */
++        edesc->pset[0].param.opt |= TCCHEN;
++
++        if (echan->slot[1] < 0) {
++            echan->slot[1] = edma_alloc_slot(echan->ecc,
++                             EDMA_SLOT_ANY);
++            if (echan->slot[1] < 0) {
++                kfree(edesc);
++                dev_err(dev, "%s: Failed to allocate slot\n",
++                    __func__);
++                return NULL;
++            }
++        }
++        dest += pset_len;
++        src += pset_len;
++        pset_len = width = len % array_size;
++
++        ret = edma_config_pset(chan, &edesc->pset[1], src, dest, 1,
++                       width, pset_len, DMA_MEM_TO_MEM);
++        if (ret < 0) {
++            kfree(edesc);
++            return NULL;
++        }
++
++        edesc->pset[1].param.opt |= ITCCHEN;
++        edesc->pset[1].param.opt |= TCINTEN;
++    }
++
++    return vchan_tx_prep(&echan->vchan, &edesc->vdesc, tx_flags);
++}
++EXPORT_SYMBOL(edma_prep_dma_fpga);
++
+ static struct dma_async_tx_descriptor *edma_prep_dma_cyclic(
+ 	struct dma_chan *chan, dma_addr_t buf_addr, size_t buf_len,
+ 	size_t period_len, enum dma_transfer_direction direction,

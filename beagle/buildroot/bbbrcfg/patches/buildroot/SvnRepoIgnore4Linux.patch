@@ -1,0 +1,139 @@
+Index: linux/ignore.txt
+===================================================================
+--- linux/ignore.txt	(nonexistent)
++++ linux/ignore.txt	(revision 1693)
+@@ -0,0 +1,8 @@
++generated
++config
++CV_34_39_500.dts
++CV_34_39_500A.dts
++CV_34_39_500B.dts
++GNUmakefile
++zImage.*
++System.map
+
+Property changes on: linux/ignore.txt
+___________________________________________________________________
+Added: svn:mime-type
+## -0,0 +1 ##
++text/plain
+\ No newline at end of property
+Index: linux/linux.mk
+===================================================================
+--- linux/linux.mk	(revision 1692)
++++ linux/linux.mk	(revision 1693)
+@@ -135,7 +135,12 @@
+ 	svn checkout file:///$$LINUXSVNPATH .; \
+ 	svn add . --force > /dev/null; \
+ 	svn commit . -m "Import existing codebase"; \
+-	printf ".*\nmodules.builtin\nmodules.order\n.*" > ignore.txt; \
++	printf ".*\nmodules.builtin\nmodules.order\n.*\nignore.txt\n" > ignore.txt; \
++	readarray -t files < <(find -iname ".gitignore"); \
++	for line in "$${files[@]}"; do \
++	    cat "$$line" | awk '!/#/ && !/\!/ {print $$0}' >> ignore.txt; \
++	done; \
++	cat $(TOPDIR)/$(LINUX_PKGDIR)/ignore.txt >> ignore.txt; \
+ 	svn propset svn:global-ignores -F ignore.txt .; \
+ 	fi
+ endef
+@@ -258,13 +263,25 @@
+ endif # BR2_LINUX_KERNEL_VMLINUX
+
+ define LINUX_APPLY_LOCAL_PATCHES
+-	for p in $(filter-out ftp://% http://% https://%,$(LINUX_PATCHES)) ; do \
+-		if test -d $$p ; then \
+-			$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
+-		else \
+-			$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
+-		fi \
+-	done
++	if [ -n "$$CREATE_SVN_REPOS" ]; then \
++		if [ "$$CREATE_SVN_REPOS" == "0" ]; then \
++			export NO_PATCH=1 ; \
++		fi ; \
++		if [ "$$CREATE_SVN_REPOS" == "2" ]; then \
++			export SVN_PATCH=1 ; \
++		fi ; \
++	fi ; \
++	if [ -z "$$NO_PATCH" ]; then \
++		for p in $(filter-out ftp://% http://% https://%,$(LINUX_PATCHES)) ; do \
++			if test -d $$p ; then \
++				$(APPLY_PATCHES) $(@D) $$p \*.patch || exit 1 ; \
++			else \
++				$(APPLY_PATCHES) $(@D) `dirname $$p` `basename $$p` || exit 1; \
++			fi \
++		done ; \
++	fi ; \
++	unset NO_PATCH ; \
++	unset SVN_PATCH
+ endef
+
+ LINUX_POST_PATCH_HOOKS += LINUX_APPLY_LOCAL_PATCHES
+Index: boot/uboot/uboot.mk
+===================================================================
+--- boot/uboot/uboot.mk	(revision 1692)
++++ boot/uboot/uboot.mk	(revision 1693)
+@@ -203,7 +203,12 @@
+ 	svn checkout file:///$$UBOOTSVNPATH .; \
+ 	svn add . --force > /dev/null; \
+ 	svn commit . -m "Import existing codebase"; \
+-	printf ".*\nMLO*\nu-boot*\n*.su\n*.map\n*.efi\nhello_world*\nautoconf.mk*\nspl\narch\nconfig\ngenerated\ncommon\nlib\nasm-offsets.s\nconfig.h\nfixdep\nconf\nfdtgrep\ngen_eth_addr\ngen_ethaddr_crc\nimg2srec\nmkenvimage\nmkimage\nproftool\ndumpimage\nenvcrc\nzconf.*.c\nignore.txt\n" > ignore.txt; \
++	printf "ignore.txt\n" > ignore.txt; \
++	readarray -t files < <(find -iname ".gitignore"); \
++	for line in "$${files[@]}"; do \
++	    cat "$$line" | awk '!/#/ && !/\!/ {print $$0}' >> ignore.txt; \
++	done; \
++	cat $(TOPDIR)/$(UBOOT_PKGDIR)/ignore.txt >> ignore.txt; \
+ 	svn propset svn:global-ignores -F ignore.txt .; \
+ 	fi
+ endef
+Index: boot/uboot/ignore.txt
+===================================================================
+--- boot/uboot/ignore.txt	(nonexistent)
++++ boot/uboot/ignore.txt	(revision 1693)
+@@ -0,0 +1,21 @@
++u-boot*
++MLO*
++hello_world*
++autoconf.mk*
++config.h
++spl
++arch
++config
++generated
++common
++lib
++dumpimage
++envcrc
++fdtgrep
++gen_eth_addr
++gen_ethaddr_crc
++img2srec
++mkenvimage
++mkimage
++proftool
++System.map
+
+Property changes on: boot/uboot/ignore.txt
+___________________________________________________________________
+Added: svn:mime-type
+## -0,0 +1 ##
++text/plain
+\ No newline at end of property
+Index: support/scripts/apply-patches.sh
+===================================================================
+--- support/scripts/apply-patches.sh	(revision 1692)
++++ support/scripts/apply-patches.sh	(revision 1693)
+@@ -129,9 +129,10 @@
+         	CUR_DIR=$PWD
+             cd "${builddir}"
+
+-            readarray -t files < <(${uncomp} "${path}/$patch" | patch --dry-run -R -p1 -E -d "${builddir}" | awk '//{printf("%s\n",$3);}')
++			${uncomp} "${path}/$patch" | patch --dry-run -R -p1 -E -d "${builddir}" | awk '!/\(/{printf("%s\n",$3);}'
++            readarray -t files < <(${uncomp} "${path}/$patch" | patch --dry-run -R -p1 -E -d "${builddir}" | awk '!/\(/{printf("%s\n",$3);}')
+             for line in "${files[@]}"; do
+-                svn add "$line" 2>/dev/null || true
++                svn add "$line" 2>/dev/null || svn -N add $(dirname "$line") 2>/dev/null && svn add "$line" 2>/dev/null || true
+             done
+
+             echo "svn commit . --force-log -m \"${path}/$patch\""

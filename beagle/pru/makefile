@@ -9,7 +9,7 @@
 
 PRU_SDK_DIR=/home/user/ti
 PRU_CGT=$(PRU_SDK_DIR)/ti-cgt-pru_2.3.3
-export SYSROOT=/opt/bbb_debian10_lx4_19rt_sysroot
+export SYSROOT=/home/user/opt/bbb_debian10_lx4_19rt_sysroot
 
 CC_ARM=arm-linux-gnueabihf-gcc -g --sysroot $$SYSROOT
 #CC_ARM=/home/user/workspaceCpp/btoctavobr_out2/host/bin/arm-linux-gcc -g
@@ -66,7 +66,7 @@ PROG_NAME3=PRU_Motor
 TARGET3=$(GEN_DIR)/$(PROG_NAME3).elf
 MAP3=$(GEN_DIR)/$(PROG_NAME3).map
 SOURCES3=PRU_Motor.c
-OBJECTS3=$(patsubst %,$(GEN_DIR)/%,$(SOURCES2:.c=.obj))
+OBJECTS3=$(patsubst %,$(GEN_DIR)/%,$(SOURCES3:.c=.obj))
 
 all: printStart $(TARGET1) $(TARGET2) $(TARGET3) O/host_motor O/host_echo printEnd
 
@@ -128,7 +128,7 @@ $(TARGET3): $(OBJECTS3) $(LINKER_COMMAND_FILE)
 	@echo ''
 	@echo 'Building target: $@'
 	@echo 'Invoking: PRU Linker'
-	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS2) -m$(MAP3) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
+	$(PRU_CGT)/bin/clpru $(CFLAGS) -z -i$(PRU_CGT)/lib -i$(PRU_CGT)/include $(LFLAGS) -o $@ $(OBJECTS3) -m$(MAP3) $(LINKER_COMMAND_FILE) --library=libc.a $(LIBS)
 	@echo 'Finished building target: $@'
 
 # Invokes the compiler on all c files in the directory to create the object files

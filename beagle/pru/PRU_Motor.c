@@ -81,7 +81,7 @@ void main(void)
     volatile uint8_t *status;
     volatile uint32_t gpio;
 
-    volatile uint8_t *ram = 0x9ED00000;
+    volatile uint8_t *ram = (volatile uint8_t *)0x9ED00000;
 
     /* Allow OCP master port access by the PRU so the PRU can read external memories */
     CT_CFG.SYSCFG_bit.STANDBY_INIT = 0;
@@ -108,18 +108,18 @@ void main(void)
             /* Receive all available messages, multiple messages can be sent per kick */
             while (pru_rpmsg_receive(&transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
                 /* Echo the message back to the same address from which we just received */
-                if (payload[0] == '1') {
+                if (len>=2 && payload[0]=='S' && payload[1]=='T')  {
                     bRunPWM = 1;
-                    pru_rpmsg_send(&transport, dst, src, "On\n", 3);
+                    pru_rpmsg_send(&transport, dst, src, "On", 3);
                 }
 
-                if (payload[0] == '0') {
+                if (len>=2 && payload[0]=='S' && payload[1]=='P')  {
                     bRunPWM = 0;
-                    pru_rpmsg_send(&transport, dst, src, "Off\n", 4);
+                    pru_rpmsg_send(&transport, dst, src, "Off", 4);
                 }
 
                 if (*ram == 'A') {
-                    pru_rpmsg_send(&transport, dst, src, "YES\n", 4);
+                    pru_rpmsg_send(&transport, dst, src, "YES", 4);
                 }
             }
         }

@@ -57,21 +57,19 @@ static int WriteValue2FileChecked(char* pcFile, char* pcValue)
         return -1;
     }
 
-    uiLen = read(fd, pcReadVal, READ_VAL_BUF_LEN-1);
-    if (uiLen > 0) {
-        printf("ReadVal %u: '%s'\n", uiLen, pcReadVal);
-        if (strcmp(pcReadVal, pcValue) == 0) {
-            close(fd);
-            return 0;
-        }
-    }
-
     uiLen = strlen(pcValue);
     if (uiLen != write(fd, pcValue, uiLen)) {
         fprintf(stderr, "Failed to write value %s in %s!\n", pcValue, pcFile);
         close(fd);
         return -1;
     }
+
+    uiLen = read(fd, pcReadVal, READ_VAL_BUF_LEN-1);
+    if (uiLen>0 && uiLen<READ_VAL_BUF_LEN-1) {
+        pcReadVal[uiLen] = '\0';
+        printf("ReadVal %u: '%s'\n", uiLen, pcReadVal);
+    }
+
     close(fd);
     return 0;
 }
@@ -119,7 +117,7 @@ int main(void)
         exit(-1);
     }
 
-    *gpio_map = 'A';
+    *gpio_map = 'B';
 
 
     chip = gpiod_chip_open_by_name(chipname);
@@ -158,11 +156,13 @@ int main(void)
     getchar();
 
     while(1) {
-        ret = WriteValue2File("/dev/rpmsg_pru31", "1");
-        if (ret < 0) goto release_line;
+        ret = WriteValue2FileChecked("/dev/rpmsg_pru31", "ST");
+        if (ret < 0)
+            goto release_line;
         getchar();
-        ret = WriteValue2File("/dev/rpmsg_pru31", "0");
-        if (ret < 0) goto release_line;
+        ret = WriteValue2FileChecked("/dev/rpmsg_pru31", "SP");
+        if (ret < 0)
+            goto release_line;
         getchar();
     }
 

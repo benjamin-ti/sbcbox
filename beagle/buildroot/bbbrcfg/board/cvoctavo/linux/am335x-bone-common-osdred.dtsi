@@ -107,7 +107,7 @@
 
 	uart0_pins: pinmux_uart0_pins {
 		pinctrl-single,pins = <
-		    AM33XX_IOPAD(0x9b4, PIN_INPUT_PULLDOWN | MUX_MODE0)
+//		    AM33XX_IOPAD(0x9b4, PIN_INPUT_PULLDOWN | MUX_MODE0) /* xdma_event_intr1 */
 
 			AM33XX_IOPAD(0x970, PIN_INPUT_PULLUP | MUX_MODE0)	/* uart0_rxd.uart0_rxd */
 			AM33XX_IOPAD(0x974, PIN_OUTPUT_PULLDOWN | MUX_MODE0)	/* uart0_txd.uart0_txd */
@@ -257,6 +257,12 @@
 		AM33XX_IOPAD(0x0978, PIN_OUTPUT_PULLUP | INPUT_EN | MUX_MODE4) >; };	/* uart1_ctsn.spi1_cs0 */
 	P9_20_pru_uart_pin: pinmux_P9_20_pru_uart_pin { pinctrl-single,pins = <
 		AM33XX_IOPAD(0x0978, PIN_OUTPUT_PULLUP | INPUT_EN | MUX_MODE5) >; };	/* uart1_ctsn.pr1_uart0_cts_n */
+
+    /* P9_41 */
+    P9_41_xdma_ev1_pin: pinmux_P9_41_xdma_ev1_pin { pinctrl-single,pins = <
+        AM33XX_IOPAD(0x9b4, PIN_INPUT_PULLDOWN | MUX_MODE0) >; }; /* xdma_event_intr1 */
+    P9_41_gpio_pin: pinmux_P9_41_gpio_pin { pinctrl-single,pins = <
+        AM33XX_IOPAD(0x9b4, PIN_OUTPUT | INPUT_EN | MUX_MODE7) >; };
 };
 
 &uart0 {
@@ -540,6 +546,13 @@
 		pinctrl-9 = <&P9_20_timer_pin>;
 	};
 
+    P9_41_pinmux {
+        compatible = "bone-pinmux-helper";
+        status = "okay";
+        pinctrl-names = "default", "gpio";
+        pinctrl-0 = <&P9_41_xdma_ev1_pin>;
+        pinctrl-1 = <&P9_41_gpio_pin>;
+    };
 
 	cape-universal {
 		compatible = "gpio-of-helper";

@@ -17,3 +17,42 @@ Debug U-Boot
    check relocate address with bdinfo on uboot console
    and update uboot_relocate.gdb
 
+U-Boot Debug BeagleBone
+
+Enable Clock-Controls:
+DMTimer2:
+0x44E00508 = 0x01
+0x44E00080 = 0x02
+
+UART0
+0x44E004B4 = 0x02
+
+I2C
+0x44E004B8 = 0x02
+
+
+ELM:
+0x44e00040 = 0x2
+
+USB0:
+0x44e0001C = 0x2
+
+Lauterbach:
+Data.Set AD:0x44E00508 %LE %Long 0x01
+Data.Set AD:0x44E00080 %LE %Long 0x02
+Data.Set AD:0x44E004B4 %LE %Long 0x02
+Data.Set AD:0x44E004B8 %LE %Long 0x02
+
+Relocate Addr:
+9FF4B000
+
+0x9FF4CB2C
+
+SYMbol.reloc 0x9FF4B000-0x80800000
+
+Func B4 Reloc:
+setup_reloc
+
+
+
+

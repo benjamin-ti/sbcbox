@@ -13,10 +13,20 @@ _start:
     ldr r1, basic_handler
     str r1,[r0]
 
+    @ Assign the FIQ interrupt method
+    ldr r0, base_fiq_addr
+    ldr r1, basic_handler
+    str r1,[r0]
+
     @ Setup sp in IRQ mode
     ldr r0, cpsr_irq
     msr cpsr, r0
     ldr sp,=irq_stack_top
+
+    @ Setup sp in FIQ mode
+    ldr r0, cpsr_fiq
+    msr cpsr, r0
+    ldr sp,=fiq_stack_top
 
     @ Go back to supervisor mode, enable irq
     ldr r0, cpsr_svc_ei
@@ -29,9 +39,12 @@ handle_irq:
    bx lr
 
 cpsr_svc:      .word 0x193
+cpsr_fiq:      .word 0x111
 cpsr_irq:      .word 0x192
 cpsr_svc_ei:   .word 0x153
+cpsr_svc_efiq_ei: .word 0x113
 base_irq_addr: .word 0x4030CE38
+base_fiq_addr: .word 0x4030CE3C
 basic_handler: .word irq_handler
 
 .global Register_Write

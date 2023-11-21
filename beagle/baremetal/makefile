@@ -8,7 +8,7 @@ O/baremetal.bin: O/baremetal.elf
 	$(CHAIN)-objcopy -O binary $< $@
 
 O/baremetal.elf: O/start.o O/megos_uart.o O/main.o
-	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -T link-arm.ld -o $@
+	$(CC) $(LDFLAGS) $^ $(LOADLIBES) $(LDLIBS) -nostartfiles -Wl,-Map=O/baremetal.map -T link-arm.ld -o $@
 
 mkO:
 	mkdir -p O

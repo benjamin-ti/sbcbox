@@ -16,13 +16,16 @@
 #define CM_WKUP_UART0_CLKCTRL (volatile unsigned*)(CM_WKUP_BASE+0xB4)
 
 
-#define INTCPS_BASE     0x48200000
-#define INTC_SIR_IRQ    (volatile unsigned*)(INTCPS_BASE+0x40)
-#define INTC_CONTROL    (volatile unsigned*)(INTCPS_BASE+0x48)
-#define INTC_MIR2       (volatile unsigned*)(INTCPS_BASE+0xC4)
-#define INTC_MIR_CLEAR2 (volatile unsigned*)(INTCPS_BASE+0xC8)
-#define INTC_MIR_SET2   (volatile unsigned*)(INTCPS_BASE+0xCC)
-#define INTC_ILR68      (volatile unsigned*)(INTCPS_BASE+0x210)
+#define INTCPS_BASE       0x48200000
+#define INTC_SIR_IRQ      (volatile unsigned*)(INTCPS_BASE+0x40)
+#define INTC_CONTROL      (volatile unsigned*)(INTCPS_BASE+0x48)
+#define INTC_IRQ_PRIORITY (volatile unsigned*)(INTCPS_BASE+0x60)
+#define INTC_THRESHOLD    (volatile unsigned*)(INTCPS_BASE+0x68)
+#define INTC_MIR2         (volatile unsigned*)(INTCPS_BASE+0xC4)
+#define INTC_MIR_CLEAR2   (volatile unsigned*)(INTCPS_BASE+0xC8)
+#define INTC_MIR_SET2     (volatile unsigned*)(INTCPS_BASE+0xCC)
+#define INTC_ILR68        (volatile unsigned*)(INTCPS_BASE+0x210)
+#define INTC_ILR69        (volatile unsigned*)(INTCPS_BASE+0x214)
 
 #define NEWIRQAGR       0x1;
 
@@ -85,7 +88,7 @@ void handle_DMTimer3(void)
     }
     b = !b;
 
-    *DMTIMER3_TCRR = 0xFF900000;
+    *DMTIMER3_TCRR = 0xFFF00000;
     *DMTIMER3_TCLR = 0x1;
 }
 
@@ -93,8 +96,23 @@ void handle_DMTimer3(void)
 void __attribute__((interrupt)) irq_handler()
 {
     unsigned int uiIRQNum;
+    unsigned int uiThresholdSave;
+    unsigned int uiIntcIrqPriority;
+
+    uiThresholdSave = *INTC_THRESHOLD;
+    uiIntcIrqPriority = *INTC_IRQ_PRIORITY;
+    *INTC_THRESHOLD = (uiIntcIrqPriority & 0x000000FF);
 
     uiIRQNum = *INTC_SIR_IRQ & ~0xFFFFFF80;
+
+    *INTC_CONTROL = NEWIRQAGR; // Ack Global Int
+
+    // Enable IRQ/FIQ at ARM side: activate IRQs in CPSR-Register
+    asm volatile (
+            "MRS R0, CPSR\n"        // Read the status register
+            "BIC R0, R0, #0x80\n"    // Clear the I bit (bit 7)
+            "MSR CPSR, R0\n"         // Write it back to enable IRQs
+        );
 
     switch (uiIRQNum)
     {
@@ -108,7 +126,14 @@ void __attribute__((interrupt)) irq_handler()
             break;
     }
 
-    *INTC_CONTROL = NEWIRQAGR; // Ack Global Int
+    // Disable IRQ/FIQ at ARM side: disable IRQs in CPSR-Register
+    asm volatile (
+            "MRS R0, CPSR\n"        // Read the status register
+            "ORR R0, R0, #0x80\n"    // Set the I bit (bit 7)
+            "MSR CPSR, R0\n"         // Write it back to enable IRQs
+        );
+
+    *INTC_THRESHOLD = uiThresholdSave;
 }
 
 #define HWREG(x) (*((volatile unsigned int*)(x)))
@@ -137,6 +162,7 @@ void _main (void)
 //    *INTC_MIR2 &= 0xFFFFFFEF;
     *INTC_MIR_CLEAR2 = 0x00000010;
     // *INTC_ILR68 = 0x11; // Enable FIQ, but is not available on General Purpose Am335x, only on Security Devices
+    *INTC_ILR68 = 0xF0; // Low Priority
     *DMTIMER2_TCRR = 0xFF000000;
     *DMTIMER2_TCLR = 0x1;
     *DMTIMER2_IRQENABLE_SET = 0x2;
@@ -145,6 +171,7 @@ void _main (void)
     *CM_PER_TIMER3 = 0x2;
 //    *INTC_MIR2 &= 0xFFFFFFDF;
     *INTC_MIR_CLEAR2 = 0x00000020;
+    *INTC_ILR69 = 0x10; // Low Priority
     *DMTIMER3_TCRR = 0xFF900000;
     *DMTIMER3_TCLR = 0x1;
     *DMTIMER3_IRQENABLE_SET = 0x2;

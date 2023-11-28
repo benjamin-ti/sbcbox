@@ -7,11 +7,16 @@ volatile unsigned int * const UART0DR = (unsigned int *)0x101f1000;
 // -----------------------------------------------------------------------------
 
 #define TIMER0_BASE 0x101E2000
-
 #define TIMER0_LOAD  ((volatile unsigned int *)(TIMER0_BASE + 0x0))
 #define TIMER0_VALUE ((volatile unsigned int *)(TIMER0_BASE + 0x4))
 #define TIMER0_CONTROL ((volatile unsigned int *)(TIMER0_BASE + 0x8))
 #define TIMER0_INTCLR ((volatile unsigned int *)(TIMER0_BASE + 0xC))
+
+#define TIMER2_BASE 0x101E3000
+#define TIMER2_LOAD  ((volatile unsigned int *)(TIMER2_BASE + 0x0))
+#define TIMER2_VALUE ((volatile unsigned int *)(TIMER2_BASE + 0x4))
+#define TIMER2_CONTROL ((volatile unsigned int *)(TIMER2_BASE + 0x8))
+#define TIMER2_INTCLR ((volatile unsigned int *)(TIMER2_BASE + 0xC))
 
 #define TIMER_EN 0x80
 #define TIMER_PERIODIC 0x40
@@ -22,25 +27,44 @@ volatile unsigned int * const UART0DR = (unsigned int *)0x101f1000;
 // -----------------------------------------------------------------------------
 
 #define PIC_BASE 0x10140000
-#define PIC_IntStatus ((volatile unsigned int *)(PIC_BASE + 0x00))
+#define PIC_IRQStatus ((volatile unsigned int *)(PIC_BASE + 0x00))
 #define PIC_IntEnable ((volatile unsigned int *)(PIC_BASE + 0x10))
 #define PIC_IntEnClear ((volatile unsigned int *)(PIC_BASE + 0x14))
 
 #define PIC_TIMER0_1 (1 << 4)
+#define PIC_TIMER2_3 (1 << 5)
+
+int dummy;
 
 // -----------------------------------------------------------------------------
 
 void print_uart0(const char *s);
 
 // -----------------------------------------------------------------------------
+void timer0_1_irq(void)
+{
+    int i;
+    print_uart0("timer0_1_irq\n");
+    for (i=0; i<0x3FFFFFFF; i++) {
+        dummy++;
+    }
+    *TIMER0_INTCLR = PIC_TIMER0_1;
+}
+
+// -----------------------------------------------------------------------------
+void timer2_3_irq(void)
+{
+    print_uart0("timer2_3_irq\n");
+    *TIMER2_INTCLR = PIC_TIMER2_3;
+}
 
 void __attribute__((interrupt)) irq_handler()
 {
-    print_uart0("irq_handler\n");
-    //	*TIMER0_LOAD = 0xFFFF;
-    //	*PIC_IntEnClear = PIC_TIMER0_1;
-    //	*PIC_IntEnable = PIC_TIMER0_1;
-    *TIMER0_INTCLR = PIC_TIMER0_1;
+    if (*PIC_IRQStatus & PIC_TIMER0_1)
+        timer0_1_irq();
+
+    if (*PIC_IRQStatus & PIC_TIMER2_3)
+        timer2_3_irq();
 }
 
 /* all other handlers are infinite loops */
@@ -80,16 +104,20 @@ void main()
     int i;
     unsigned int uiTimerValue;
 
-    *TIMER0_LOAD = 0xFFFF;
+    *TIMER0_LOAD = 0x4FFFF;
     *TIMER0_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
-    *PIC_IntEnClear = PIC_TIMER0_1;
-    *PIC_IntEnable = PIC_TIMER0_1;
+    *TIMER2_LOAD = 0xAFFF;
+    *TIMER2_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
+    // *PIC_IntEnClear = PIC_TIMER0_1;
+    *PIC_IntEnable = PIC_TIMER0_1 | PIC_TIMER2_3;
 
+    i = 0;
     for (;;) {
-        uiTimerValue = *TIMER0_VALUE;
-        if (uiTimerValue>0x9999 && uiTimerValue<0xAAAA) {
+        i++;
+        if (i==0x3FFFFFFF) {
             snprintf(pcBuf, BUF_SIZE, "Hello world: %x\n", uiTimerValue);
             print_uart0(pcBuf);
+            i = 0;
         }
     }
 }

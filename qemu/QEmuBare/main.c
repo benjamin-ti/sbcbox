@@ -27,9 +27,14 @@ volatile unsigned int * const UART0DR = (unsigned int *)0x101f1000;
 // -----------------------------------------------------------------------------
 
 #define PIC_BASE 0x10140000
-#define PIC_IRQStatus ((volatile unsigned int *)(PIC_BASE + 0x00))
-#define PIC_IntEnable ((volatile unsigned int *)(PIC_BASE + 0x10))
-#define PIC_IntEnClear ((volatile unsigned int *)(PIC_BASE + 0x14))
+#define PIC_IRQStatus  ((volatile unsigned int *)(PIC_BASE + 0x000))
+#define PIC_IntEnable  ((volatile unsigned int *)(PIC_BASE + 0x010))
+#define PIC_IntEnClear ((volatile unsigned int *)(PIC_BASE + 0x014))
+#define PIC_VectAddr   ((volatile unsigned int *)(PIC_BASE + 0x030))
+#define PIC_VectAddr0  ((volatile unsigned int *)(PIC_BASE + 0x100))
+#define PIC_VectAddr1  ((volatile unsigned int *)(PIC_BASE + 0x104))
+#define PIC_VectCntl0  ((volatile unsigned int *)(PIC_BASE + 0x200))
+#define PIC_VectCntl1  ((volatile unsigned int *)(PIC_BASE + 0x204))
 
 #define PIC_TIMER0_1 (1 << 4)
 #define PIC_TIMER2_3 (1 << 5)
@@ -51,20 +56,40 @@ void timer0_1_irq(void)
     *TIMER0_INTCLR = PIC_TIMER0_1;
 }
 
-// -----------------------------------------------------------------------------
 void timer2_3_irq(void)
 {
     print_uart0("timer2_3_irq\n");
     *TIMER2_INTCLR = PIC_TIMER2_3;
 }
 
+// -----------------------------------------------------------------------------
 void __attribute__((interrupt)) irq_handler()
 {
-    if (*PIC_IRQStatus & PIC_TIMER0_1)
+    void* pIsrAddr;
+
+    pIsrAddr = (void*)(*PIC_VectAddr);
+
+    // Enable IRQ/FIQ at ARM side: activate IRQs in CPSR-Register
+    asm volatile (
+            "MRS R0, CPSR\n"        // Read the status register
+            "BIC R0, R0, #0x80\n"    // Clear the I bit (bit 7)
+            "MSR CPSR, R0\n"         // Write it back to enable IRQs
+        );
+
+    if (pIsrAddr ==  &timer0_1_irq)
         timer0_1_irq();
 
-    if (*PIC_IRQStatus & PIC_TIMER2_3)
+    if (pIsrAddr ==  &timer2_3_irq)
         timer2_3_irq();
+
+    // Disable IRQ/FIQ at ARM side: disable IRQs in CPSR-Register
+    asm volatile (
+            "MRS R0, CPSR\n"        // Read the status register
+            "ORR R0, R0, #0x80\n"    // Set the I bit (bit 7)
+            "MSR CPSR, R0\n"         // Write it back to enable IRQs
+        );
+
+    *PIC_VectAddr = (int)pIsrAddr;
 }
 
 /* all other handlers are infinite loops */
@@ -108,7 +133,10 @@ void main()
     *TIMER0_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
     *TIMER2_LOAD = 0xAFFF;
     *TIMER2_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
-    // *PIC_IntEnClear = PIC_TIMER0_1;
+    *PIC_VectCntl1 = 0x00000020 | 4;
+    *PIC_VectCntl0 = 0x00000020 | 5;
+    *PIC_VectAddr1 = (int)&timer0_1_irq;
+    *PIC_VectAddr0 = (int)&timer2_3_irq;
     *PIC_IntEnable = PIC_TIMER0_1 | PIC_TIMER2_3;
 
     i = 0;

@@ -1,0 +1,14 @@
+Run the emulation with:
+
+  qemu-system-arm -M versatilepb -kernel output/images/zImage -dtb output/images/versatile-pb.dtb -drive file=output/images/rootfs.ext2,if=scsi,format=raw -append "rootwait root=/dev/sda console=ttyAMA0,115200" -serial stdio -net nic,model=rtl8139 -net user
+
+(BT: I put smc91c111 also in this kernel, because not all qemu run with rtl8139)
+  
+Or for the noMMU emulation:
+
+  qemu-system-arm -M versatilepb -kernel output/images/zImage -dtb output/images/versatile-pb.dtb -append "console=ttyAMA0,115200" -serial stdio -net user -net nic,model=smc91c111
+
+The login prompt will appear in the terminal that started Qemu. The
+graphical window is the framebuffer.
+
+Tested with QEMU 2.12.0

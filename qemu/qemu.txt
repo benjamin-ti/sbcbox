@@ -9,3 +9,7 @@ qemu-system-arm -machine virt -bios u-boot.bin
     -netdev user,id=net0 -device e1000,netdev=net0
 - To add an EHCI-compliant USB host controller, pass e.g.:
     -device usb-ehci,id=ehci
+
+- To ssh to your machine:
+    -nic user,hostfwd=tcp::8888-:22
+  ssh root@127.0.0.1 -p 8888

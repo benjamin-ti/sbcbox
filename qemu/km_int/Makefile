@@ -1,3 +1,5 @@
+-include myconfig
+
 BOARDIP=127.0.0.1
 USER=root
 PASSWD=root

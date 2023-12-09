@@ -41,3 +41,27 @@ Device-Tree:
 
 Recompile Device-Tree:
 dtc -I dts -O dtb -o am335x-boneblack.dtb am335x-boneblack.dts
+
+Debug Linux Kernel:
+====================
+
+make linux-xconfig
+CONFIG_DEBUG_KERNEL=y
+CONFIG_DEBUG_INFO=y
+
+cd build linux-...
+make clean
+cd ../../
+make linux-rebuild
+make
+
+gdb-multiarch build/linux-.../vmlinux
+target remote :1234
+# Nach Funktionen suchen:
+info functions __lookup*
+
+break __lookup_processor_type
+continue
+layout asm
+
+quit

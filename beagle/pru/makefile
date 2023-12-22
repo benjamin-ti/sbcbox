@@ -70,7 +70,7 @@ OBJECTS3=$(patsubst %,$(GEN_DIR)/%,$(SOURCES3:.c=.obj))
 
 all: printStart $(TARGET1) $(TARGET2) $(TARGET3) O/host_motor O/host_echo printEnd
 
-upload_only:
+upload_all:
 	sshpass -p temppwd scp O/host_echo debian@$(BOARDIP):~
 	sshpass -p temppwd scp O/host_motor debian@$(BOARDIP):~
 	sshpass -p temppwd scp O/PRU_gpioToggle.elf debian@$(BOARDIP):~
@@ -78,13 +78,11 @@ upload_only:
 	sshpass -p temppwd scp O/PRU_Motor.elf debian@$(BOARDIP):~
 	sshpass -p temppwd scp change_prumsg_echo.sh debian@$(BOARDIP):~
 
-upload_motor:
-	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_46_pinmux/state; exit 0"
-	sshpass -p temppwd ssh debian@$(BOARDIP) "echo pruout > /sys/devices/platform/ocp/ocp:P8_44_pinmux/state; exit 0"
+updnstart_motor: all
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo stop > /sys/class/remoteproc/remoteproc2/state; exit 0"
 	sshpass -p temppwd scp O/host_motor debian@$(BOARDIP):~
-	sshpass -p temppwd scp O/PRU_RPMsgEcho.elf debian@$(BOARDIP):~
-	sshpass -p temppwd scp O/PRU_RPMsgEcho.elf debian@$(BOARDIP):/lib/firmware/am335x-pru1-fw
+	sshpass -p temppwd scp O/PRU_Motor.elf debian@$(BOARDIP):~
+	sshpass -p temppwd scp O/PRU_Motor.elf debian@$(BOARDIP):/lib/firmware/am335x-pru1-fw
 	sshpass -p temppwd ssh debian@$(BOARDIP) "echo start > /sys/class/remoteproc/remoteproc2/state; exit 0"	
 
 printStart:

@@ -37,6 +37,7 @@
 #include <pru_intc.h>
 #include <rsc_types.h>
 #include <pru_rpmsg.h>
+#include <pru_iep.h>
 #include "resource_table_1.h"
 
 volatile register uint32_t __R30;
@@ -71,17 +72,79 @@ uint8_t send[RPMSG_MESSAGE_SIZE+1];
 
 uint8_t bRunPWM;
 
-/*
- * main.c
+/*=========================================================================*/
+void reset_iep(void)
+{
+    // Set counter to 0
+    CT_IEP.TMR_CNT = 0x0;
+    // Enable counter
+    // (*(volatile unsigned int *) 0x0002E000 ) = 0x0011;
+    CT_IEP.TMR_GLB_CFG = 0x11;
+}
+
+/*=========================================================================*/
+static inline int PrintfDispNumHelpPos(char* pc8Char,
+                          uint32_t ui32Value, uint32_t ui32PosNum,
+                          uint32_t* pui32CurPosNumSum)
+{
+    uint32_t ui32;
+
+    if (ui32Value >= ui32PosNum)
+    {
+        ui32 = ((ui32Value-*pui32CurPosNumSum) / ui32PosNum);
+        *pc8Char = '0' + (char)ui32;
+        *pui32CurPosNumSum += ui32 * ui32PosNum;
+        return 1;
+    }
+
+    return 0;
+}
+
+
+/*=========================================================================*/
+/**
+ * \param pc8String Abgeschlossener String mit genuegend Platz fuer Zahl
+ *                  Beispiel: "Bytes Received\n\0          "
+ *                  Daraus wird dann z.B. Folgendes gemacht (ui32Value=1024):
+ *                            "Bytes Received\n1024\0      "
  */
+static unsigned int VC_PrintfDispNum(char* pc8String, uint32_t ui32Value)
+{
+    unsigned int uiI;
+    uint32_t ui32CurPosNumSum = 0;
+    uint32_t ui32;
+
+    uiI = 0;
+
+    for (ui32=1000000000; ui32>0; ui32 /= 10)
+    {
+        if (PrintfDispNumHelpPos(pc8String+uiI, ui32Value, ui32,
+                                 &ui32CurPosNumSum)) uiI++;
+    }
+
+    pc8String[uiI] = '\0';
+
+    return uiI;
+}
+
+/*=========================================================================*/
 void main(void)
 {
+    char pcRet[20];
+    unsigned int uiRetLen;
+
     struct pru_rpmsg_transport transport;
     uint16_t src, dst, len;
     volatile uint8_t *status;
-    volatile uint32_t gpio;
+    volatile uint32_t gpioStep, gpioCurr;
+    int      bStep;
+    int      bCurr;
 
     volatile uint8_t *ram = (volatile uint8_t *)0x9ED00000;
+
+    unsigned int uiCurTimerVal, uiTimerValDiff;
+    unsigned int uiStepTimerVal, uiStepTimerValOld;
+    unsigned int uiCurrTimerVal, uiCurrTimerValOld;
 
     /* Allow OCP master port access by the PRU so the PRU can read external memories */
     CT_CFG.SYSCFG_bit.STANDBY_INIT = 0;
@@ -96,26 +159,44 @@ void main(void)
     /* Initialize the RPMsg transport structure */
     pru_rpmsg_init(&transport, &resourceTable.rpmsg_vring0, &resourceTable.rpmsg_vring1, TO_ARM_HOST, FROM_ARM_HOST);
 
-    gpio = 0x0000000A;
+    // M1_STEP:    LCD_DATA3 / GPIO_73 / P8_44 / pr1_pru1_pru_r31_3
+    // M1_CURRENT: LCD_DATA1 / GPIO_71 / P8_46 / pr1_pru1_pru_r31_1
+    gpioStep = 0x00000008;
+    gpioCurr = 0x00000002;
 
-    /* Create the RPMsg channel between the PRU and ARM user space using the transport structure. */
+    reset_iep();
+    uiCurrTimerValOld = 0;
+    uiCurrTimerVal = 200000/2;
+
+    // Create the RPMsg channel between the PRU and ARM user space using the transport structure.
     while (pru_rpmsg_channel(RPMSG_NS_CREATE, &transport, CHAN_NAME, CHAN_DESC, CHAN_PORT) != PRU_RPMSG_SUCCESS);
     while (1) {
-        /* Check bit 31 of register R31 to see if the ARM has kicked us */
+        // Check bit 31 of register R31 to see if the ARM has kicked us
         if (__R31 & HOST_INT) {
-            /* Clear the event status */
+            // Clear the event status
             CT_INTC.SICR_bit.STS_CLR_IDX = FROM_ARM_HOST;
-            /* Receive all available messages, multiple messages can be sent per kick */
-            while (pru_rpmsg_receive(&transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS) {
-                /* Echo the message back to the same address from which we just received */
-                if (len>=2 && payload[0]=='S' && payload[1]=='T')  {
+            // Receive all available messages, multiple messages can be sent per kick
+            while (pru_rpmsg_receive(&transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS)
+            {
+                if (len>=6 && payload[0]=='S' && payload[1]=='T')  {
+                    uiStepTimerVal = (payload[2]<<24) | (payload[3]<<16) | (payload[4]<<8) | payload[5];
                     bRunPWM = 1;
-                    pru_rpmsg_send(&transport, dst, src, "On", 3);
+                    uiStepTimerValOld = CT_IEP.TMR_CNT;
+                    bStep = 0;
+                    if (uiStepTimerVal == 0) {
+                        pcRet[0] = '0';
+                        uiRetLen = 1;
+                    }
+                    else {
+                        uiRetLen = VC_PrintfDispNum(pcRet, uiStepTimerVal);
+                    }
+                    pru_rpmsg_send(&transport, dst, src, pcRet, uiRetLen);
+                    uiStepTimerVal /= 2;
                 }
 
                 if (len>=2 && payload[0]=='S' && payload[1]=='P')  {
                     bRunPWM = 0;
-                    pru_rpmsg_send(&transport, dst, src, "Off", 4);
+                    pru_rpmsg_send(&transport, dst, src, "Off!", 4);
                 }
 
                 if (*ram == 'A') {
@@ -124,9 +205,36 @@ void main(void)
             }
         }
 
+        uiCurTimerVal = CT_IEP.TMR_CNT;
+
         if (bRunPWM) {
-            __R30 ^= gpio;
-            __delay_cycles(100000);
+            if (uiCurTimerVal >= uiStepTimerValOld)
+                uiTimerValDiff = uiCurTimerVal-uiStepTimerValOld;
+            else
+                uiTimerValDiff = 0xFFFFFFFF-uiStepTimerValOld+uiCurTimerVal;
+            if (uiTimerValDiff >= uiStepTimerVal) {
+                if (bStep)
+                    __R30 |= gpioStep;
+                else
+                    __R30 &= ~gpioStep;
+                bStep = !bStep;
+                uiStepTimerValOld = uiCurTimerVal;
+            }
+
+            if (uiCurTimerVal >= uiCurrTimerValOld)
+                uiTimerValDiff = uiCurTimerVal-uiCurrTimerValOld;
+            else
+                uiTimerValDiff = 0xFFFFFFFF-uiCurrTimerValOld+uiCurTimerVal;
+            if (uiTimerValDiff >= uiCurrTimerVal) {
+                if (bCurr)
+                    __R30 |= gpioCurr;
+                else
+                    __R30 &= ~gpioCurr;
+                bCurr = !bCurr;
+                uiCurrTimerValOld = uiCurTimerVal;
+            }
         }
+
+
     }
 }

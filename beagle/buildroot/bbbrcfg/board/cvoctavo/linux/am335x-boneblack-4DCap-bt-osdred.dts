@@ -22,6 +22,7 @@
 	compatible = "ti,am335x-bone-black", "ti,am335x-bone", "ti,am33xx";
 
 	chosen {
+	    bootargs = "console=ttyS0,115200n8 root=/dev/mmcblk0p2 rw rootfstype=ext4 rootwait";
 		base_dtb = "am335x-boneblack.dts";
 		base_dtb_timestamp = __TIMESTAMP__;
 	};

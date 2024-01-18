@@ -1,4 +1,4 @@
-BOARDIP=10.102.13.130
+BOARDIP=10.102.13.14
 USER=root
 PASSWD=root
 
@@ -9,7 +9,9 @@ export CROSS_COMPILE:=/opt/buildroot_tc/arm-buildroot-linux-gnueabihf_sdk-buildr
 export KM=kmmotor2
 
 # KDIR ?= /lib/modules/$(shell uname -r)/build
-KDIR ?= /home/user/wsCppSys/vcoctavobr_outStdKiTi/build/linux-custom
+# KDIR ?= /home/user/wsCppSys/vcoctavobr_outStdKiTi/build/linux-custom
+# KDIR ?= /home/user/wsSbcBox/bbbrout_cvoctavo/build/linux-custom/
+KDIR ?= /home/user/temp/xenomai/linux-beagle
 # KDIR ?= /opt/bbb_debian10_lx4_19rt_sysroot/lib/modules/4.19.94-ti-rt-r73/build
 # KDIR ?= /home/user/opt/linux-headers-4.19.94-ti-rt-r73
 BUILD_DIR ?= $(PWD)/O

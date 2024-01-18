@@ -49,10 +49,11 @@ void print_uart0(const char *s);
 void timer0_1_irq(void)
 {
     int i;
-    print_uart0("timer0_1_irq\n");
+    print_uart0("timer0_1_irq start\n");
     for (i=0; i<0x3FFFFFFF; i++) {
         dummy++;
     }
+    print_uart0("timer0_1_irq end\n");
     *TIMER0_INTCLR = PIC_TIMER0_1;
 }
 
@@ -66,8 +67,10 @@ void timer2_3_irq(void)
 void __attribute__((interrupt)) irq_handler()
 {
     void* pIsrAddr;
+    unsigned int irqstat;
 
     pIsrAddr = (void*)(*PIC_VectAddr);
+    irqstat = *PIC_IRQStatus;
 
     // Enable IRQ/FIQ at ARM side: activate IRQs in CPSR-Register
     asm volatile (
@@ -76,10 +79,18 @@ void __attribute__((interrupt)) irq_handler()
             "MSR CPSR, R0\n"         // Write it back to enable IRQs
         );
 
+/*
     if (pIsrAddr ==  &timer0_1_irq)
         timer0_1_irq();
 
     if (pIsrAddr ==  &timer2_3_irq)
+        timer2_3_irq();
+*/
+
+    if (irqstat & PIC_TIMER0_1)
+        timer0_1_irq();
+
+    if (irqstat & PIC_TIMER2_3)
         timer2_3_irq();
 
     // Disable IRQ/FIQ at ARM side: disable IRQs in CPSR-Register
@@ -133,10 +144,11 @@ void main()
     *TIMER0_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
     *TIMER2_LOAD = 0xAFFF;
     *TIMER2_CONTROL = TIMER_EN | TIMER_PERIODIC | 0x4 | TIMER_INTEN;
-    *PIC_VectCntl1 = 0x00000020 | 4;
-    *PIC_VectCntl0 = 0x00000020 | 5;
-    *PIC_VectAddr1 = (int)&timer0_1_irq;
-    *PIC_VectAddr0 = (int)&timer2_3_irq;
+
+//    *PIC_VectCntl1 = 0x00000020 | 4;
+//    *PIC_VectCntl0 = 0x00000020 | 5;
+//    *PIC_VectAddr1 = (int)&timer0_1_irq;
+//    *PIC_VectAddr0 = (int)&timer2_3_irq;
     *PIC_IntEnable = PIC_TIMER0_1 | PIC_TIMER2_3;
 
     i = 0;

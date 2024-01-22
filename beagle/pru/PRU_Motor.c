@@ -1,36 +1,3 @@
-/*
- * Copyright (C) 2016-2018 Texas Instruments Incorporated - http://www.ti.com/
- *
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- *      * Redistributions of source code must retain the above copyright
- *        notice, this list of conditions and the following disclaimer.
- *
- *      * Redistributions in binary form must reproduce the above copyright
- *        notice, this list of conditions and the following disclaimer in the
- *        documentation and/or other materials provided with the
- *        distribution.
- *
- *      * Neither the name of Texas Instruments Incorporated nor the names of
- *        its contributors may be used to endorse or promote products derived
- *        from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 #include <stdint.h>
 #include <stdio.h>
 #include <pru_cfg.h>
@@ -61,6 +28,16 @@ volatile register uint32_t __R31;
 #define CHAN_DESC                       "Channel 31"
 #define CHAN_PORT                       31
 
+typedef enum
+{
+    MOTNT_STATE_STOPPED,
+    MOTNT_STATE_INCREASE,
+    MOTNT_STATE_RUNSPEED,
+    MOTNT_STATE_DECREASE,
+
+    MOTNT_STATE_NO,
+} MOTNT_STATE;
+
 /*
  * Used to make sure the Linux drivers are ready for RPMsg communication
  * Found at linux-x.y.z/include/uapi/linux/virtio_config.h
@@ -71,6 +48,17 @@ uint8_t payload[RPMSG_MESSAGE_SIZE+1];
 uint8_t send[RPMSG_MESSAGE_SIZE+1];
 
 uint8_t bRunPWM;
+
+volatile unsigned int *ram = (volatile unsigned int *)0x9ED00000;
+
+// M1_STEP:    LCD_DATA3 / GPIO_73 / P8_44 / pr1_pru1_pru_r31_3
+// M1_CURRENT: LCD_DATA1 / GPIO_71 / P8_46 / pr1_pru1_pru_r31_1
+volatile uint32_t gpioStep = 0x00000008;
+volatile uint32_t gpioCurr = 0x00000002;
+
+MOTNT_STATE sCurState;
+unsigned int uiStepTimerVal, uiEndSpeedTimerVal;
+unsigned int uiCurCurveTableIndex;
 
 /*=========================================================================*/
 void reset_iep(void)
@@ -83,7 +71,7 @@ void reset_iep(void)
 }
 
 /*=========================================================================*/
-static inline int PrintfDispNumHelpPos(char* pc8Char,
+static inline int VC_SPrintfNumHelpPos(char* pc8Char,
                           uint32_t ui32Value, uint32_t ui32PosNum,
                           uint32_t* pui32CurPosNumSum)
 {
@@ -100,7 +88,6 @@ static inline int PrintfDispNumHelpPos(char* pc8Char,
     return 0;
 }
 
-
 /*=========================================================================*/
 /**
  * \param pc8String Abgeschlossener String mit genuegend Platz fuer Zahl
@@ -108,7 +95,7 @@ static inline int PrintfDispNumHelpPos(char* pc8Char,
  *                  Daraus wird dann z.B. Folgendes gemacht (ui32Value=1024):
  *                            "Bytes Received\n1024\0      "
  */
-static unsigned int VC_PrintfDispNum(char* pc8String, uint32_t ui32Value)
+static unsigned int VC_SPrintfNum(char* pc8String, uint32_t ui32Value)
 {
     unsigned int uiI;
     uint32_t ui32CurPosNumSum = 0;
@@ -116,15 +103,51 @@ static unsigned int VC_PrintfDispNum(char* pc8String, uint32_t ui32Value)
 
     uiI = 0;
 
+    if (ui32Value == 0) {
+        pc8String[0] = '0';
+        pc8String[1] = '\0';
+        return 1;
+    }
+
     for (ui32=1000000000; ui32>0; ui32 /= 10)
     {
-        if (PrintfDispNumHelpPos(pc8String+uiI, ui32Value, ui32,
+        if (VC_SPrintfNumHelpPos(pc8String+uiI, ui32Value, ui32,
                                  &ui32CurPosNumSum)) uiI++;
     }
 
     pc8String[uiI] = '\0';
 
     return uiI;
+}
+
+/*=========================================================================*/
+void Mot_Step(int doStep)
+{
+    switch (sCurState)
+    {
+        case MOTNT_STATE_NO:
+        case MOTNT_STATE_STOPPED:
+            break;
+
+        case MOTNT_STATE_INCREASE:
+            uiStepTimerVal = *(ram+uiCurCurveTableIndex);
+            uiCurCurveTableIndex++;
+            if (uiStepTimerVal < uiEndSpeedTimerVal) {
+                uiStepTimerVal = uiEndSpeedTimerVal;
+                sCurState = MOTNT_STATE_RUNSPEED;
+            }
+            break;
+
+        case MOTNT_STATE_RUNSPEED:
+            break;
+
+        case MOTNT_STATE_DECREASE:
+            break;
+    }
+
+    if (doStep) {
+        __R30 |= gpioStep;
+    }
 }
 
 /*=========================================================================*/
@@ -136,14 +159,13 @@ void main(void)
     struct pru_rpmsg_transport transport;
     uint16_t src, dst, len;
     volatile uint8_t *status;
-    volatile uint32_t gpioStep, gpioCurr;
     int      bStep;
     int      bCurr;
 
-    volatile uint8_t *ram = (volatile uint8_t *)0x9ED00000;
-
+    unsigned int uiTimerVal;
+    unsigned int uiStepTimerValReal;
     unsigned int uiCurTimerVal, uiTimerValDiff;
-    unsigned int uiStepTimerVal, uiStepTimerValOld;
+    unsigned int uiStepTimerValOld;
     unsigned int uiCurrTimerVal, uiCurrTimerValOld;
 
     /* Allow OCP master port access by the PRU so the PRU can read external memories */
@@ -159,18 +181,15 @@ void main(void)
     /* Initialize the RPMsg transport structure */
     pru_rpmsg_init(&transport, &resourceTable.rpmsg_vring0, &resourceTable.rpmsg_vring1, TO_ARM_HOST, FROM_ARM_HOST);
 
-    // M1_STEP:    LCD_DATA3 / GPIO_73 / P8_44 / pr1_pru1_pru_r31_3
-    // M1_CURRENT: LCD_DATA1 / GPIO_71 / P8_46 / pr1_pru1_pru_r31_1
-    gpioStep = 0x00000008;
-    gpioCurr = 0x00000002;
-
     reset_iep();
     uiCurrTimerValOld = 0;
-    uiCurrTimerVal = 200000/2;
+    uiCurrTimerVal = 200000/2; // Bei 200Mhz 1ms oder 2x 500us
 
     // Create the RPMsg channel between the PRU and ARM user space using the transport structure.
     while (pru_rpmsg_channel(RPMSG_NS_CREATE, &transport, CHAN_NAME, CHAN_DESC, CHAN_PORT) != PRU_RPMSG_SUCCESS);
-    while (1) {
+
+    while (1)
+    {
         // Check bit 31 of register R31 to see if the ARM has kicked us
         if (__R31 & HOST_INT) {
             // Clear the event status
@@ -179,44 +198,41 @@ void main(void)
             while (pru_rpmsg_receive(&transport, &src, &dst, payload, &len) == PRU_RPMSG_SUCCESS)
             {
                 if (len>=6 && payload[0]=='S' && payload[1]=='T')  {
-                    uiStepTimerVal = (payload[2]<<24) | (payload[3]<<16) | (payload[4]<<8) | payload[5];
+                    uiCurCurveTableIndex = 0;
+                    uiEndSpeedTimerVal = (payload[2]<<24) | (payload[3]<<16) | (payload[4]<<8) | payload[5];
+                    sCurState = MOTNT_STATE_INCREASE;
                     bRunPWM = 1;
                     uiStepTimerValOld = CT_IEP.TMR_CNT;
                     bStep = 0;
-                    if (uiStepTimerVal == 0) {
-                        pcRet[0] = '0';
-                        uiRetLen = 1;
-                    }
-                    else {
-                        uiRetLen = VC_PrintfDispNum(pcRet, uiStepTimerVal);
-                    }
+//                    uiTimerVal = *(ram+4);
+                    uiRetLen = VC_SPrintfNum(pcRet, uiEndSpeedTimerVal);
                     pru_rpmsg_send(&transport, dst, src, pcRet, uiRetLen);
-                    uiStepTimerVal /= 2;
+                    Mot_Step(0);
+                    uiStepTimerValReal = uiStepTimerVal/2;
                 }
 
                 if (len>=2 && payload[0]=='S' && payload[1]=='P')  {
                     bRunPWM = 0;
                     pru_rpmsg_send(&transport, dst, src, "Off!", 4);
                 }
-
-                if (*ram == 'A') {
-                    pru_rpmsg_send(&transport, dst, src, "YES", 4);
-                }
             }
         }
 
         uiCurTimerVal = CT_IEP.TMR_CNT;
 
-        if (bRunPWM) {
+        if (bRunPWM)
+        {
             if (uiCurTimerVal >= uiStepTimerValOld)
                 uiTimerValDiff = uiCurTimerVal-uiStepTimerValOld;
             else
                 uiTimerValDiff = 0xFFFFFFFF-uiStepTimerValOld+uiCurTimerVal;
-            if (uiTimerValDiff >= uiStepTimerVal) {
-                if (bStep)
-                    __R30 |= gpioStep;
-                else
+            if (uiTimerValDiff >= uiStepTimerValReal) {
+                if (!bStep)
                     __R30 &= ~gpioStep;
+                if (bStep) {
+                    Mot_Step(bStep);
+                    uiStepTimerValReal = uiStepTimerVal/2;
+                }
                 bStep = !bStep;
                 uiStepTimerValOld = uiCurTimerVal;
             }
@@ -233,8 +249,7 @@ void main(void)
                 bCurr = !bCurr;
                 uiCurrTimerValOld = uiCurTimerVal;
             }
-        }
+        } // if (bRunPWM)
 
-
-    }
+    } // while (1)
 }

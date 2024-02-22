@@ -56,6 +56,9 @@ volatile unsigned int *ram = (volatile unsigned int *)0x9ED00000;
 volatile uint32_t gpioStep = 0x00000008;
 volatile uint32_t gpioCurr = 0x00000002;
 
+struct pru_rpmsg_transport transport;
+uint16_t src, dst;
+
 MOTNT_STATE sCurState;
 unsigned int uiStepTimerVal, uiEndSpeedTimerVal;
 unsigned int uiCurCurveTableIndex;
@@ -123,10 +126,17 @@ static unsigned int VC_SPrintfNum(char* pc8String, uint32_t ui32Value)
 /*=========================================================================*/
 void Mot_Step(int doStep)
 {
+    char pcMsg[20];
+    unsigned int uiMsgLen;
+
     switch (sCurState)
     {
         case MOTNT_STATE_NO:
         case MOTNT_STATE_STOPPED:
+            pcMsg[0] = 'S';
+            pcMsg[1] = 'P';
+            pru_rpmsg_send(&transport, dst, src, pcMsg, 2);
+            bRunPWM = 0;
             break;
 
         case MOTNT_STATE_INCREASE:
@@ -135,6 +145,10 @@ void Mot_Step(int doStep)
             if (uiStepTimerVal < uiEndSpeedTimerVal) {
                 uiStepTimerVal = uiEndSpeedTimerVal;
                 sCurState = MOTNT_STATE_RUNSPEED;
+                pcMsg[0] = 'R';
+                pcMsg[1] = 'N';
+                uiMsgLen = VC_SPrintfNum(pcMsg+2, uiCurCurveTableIndex);
+                pru_rpmsg_send(&transport, dst, src, pcMsg, uiMsgLen+2);
             }
             break;
 
@@ -142,6 +156,12 @@ void Mot_Step(int doStep)
             break;
 
         case MOTNT_STATE_DECREASE:
+            uiStepTimerVal = *(ram+uiCurCurveTableIndex);
+            uiCurCurveTableIndex--;
+            if (uiCurCurveTableIndex == 0) {
+                uiStepTimerVal = 0xFFFFFFFF;
+                sCurState = MOTNT_STATE_STOPPED;
+            }
             break;
     }
 
@@ -156,8 +176,7 @@ void main(void)
     char pcRet[20];
     unsigned int uiRetLen;
 
-    struct pru_rpmsg_transport transport;
-    uint16_t src, dst, len;
+    uint16_t len;
     volatile uint8_t *status;
     int      bStep;
     int      bCurr;
@@ -212,7 +231,7 @@ void main(void)
                 }
 
                 if (len>=2 && payload[0]=='S' && payload[1]=='P')  {
-                    bRunPWM = 0;
+                    sCurState = MOTNT_STATE_DECREASE;
                     pru_rpmsg_send(&transport, dst, src, "Off!", 4);
                 }
             }

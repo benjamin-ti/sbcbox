@@ -20,7 +20,9 @@ SECTIONS
 
     .bss :
     {
+        __bss_start__ = . ;
         *(.bss*)
+        __bss_end__ = . ;
     } > sram
 
     . = . + 0x1000;
@@ -29,4 +31,7 @@ SECTIONS
     irq_stack_top = .;
     . = . + 0x1000;
     fiq_stack_top = .;
+    . = . + 0x1000;
+
+    _end = . ;
 }

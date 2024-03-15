@@ -1,4 +1,7 @@
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define CM_DPLL_BASE          0x44E00500
 #define CM_DPLL_CLKSEL_TIMER2 (volatile unsigned*)(CM_DPLL_BASE+0x8)
 #define CM_DPLL_CLKSEL_TIMER3 (volatile unsigned*)(CM_DPLL_BASE+0xC)
@@ -148,9 +151,13 @@ void serial_flush(void);
 
 // -----------------------------------------------------------------------------
 #define TIME 1000000
-void _main (void)
+#define BUF_SIZE 128
+void main (void)
 {
+    char pcBuf[BUF_SIZE];
     unsigned int ui;
+    char* pc1;
+    char* pc2;
 
     *CM_PER_L3S = 0x2;
 
@@ -182,9 +189,27 @@ void _main (void)
 
     megos_UART0_init();
     //	megos_UART0_test();
-    megos_UART0_send_string("hello");
+    pc1 = malloc(1024);
+    snprintf(pcBuf, BUF_SIZE, "hello1: %x", pc1);
+    megos_UART0_send_string(pcBuf);
     serial_send_newline();
     serial_flush();
+    free(pc1);
+
+    pc2 = malloc(1024);
+    snprintf(pcBuf, BUF_SIZE, "hello2: %x", pc2);
+    megos_UART0_send_string(pcBuf);
+    serial_send_newline();
+    serial_flush();
+
+    pc1 = malloc(1024);
+    snprintf(pcBuf, BUF_SIZE, "hello1: %x", pc1);
+    megos_UART0_send_string(pcBuf);
+    serial_send_newline();
+    serial_flush();
+
+    free(pc1);
+    free(pc2);
 
     while (1)
     {

@@ -32,7 +32,7 @@ _start:
     ldr r0, cpsr_svc_ei
     msr cpsr, r0
 
-    bl _main
+    bl main
     b .
 
 handle_irq:

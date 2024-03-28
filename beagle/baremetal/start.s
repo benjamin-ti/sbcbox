@@ -32,6 +32,17 @@ _start:
     ldr r0, cpsr_svc_ei
     msr cpsr, r0
 
+    @ Initialize BSS to zero.
+    ldr r0, bss_start
+    ldr r1, bss_end
+    mov r2, #0
+bss_clear_loop:
+    cmp r0, r1
+    beq bss_clear_done
+    strb r2, [r0], #1  @ write Null in current byte and inc pointer
+    b bss_clear_loop
+bss_clear_done:
+
     bl main
     b .
 
@@ -46,6 +57,8 @@ cpsr_svc_efiq_ei: .word 0x113
 base_irq_addr: .word 0x4030CE38
 base_fiq_addr: .word 0x4030CE3C
 basic_handler: .word irq_handler
+bss_start:     .word __bss_start__
+bss_end:       .word __bss_end__
 
 .global Register_Write
 .global Register_Read

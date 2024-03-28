@@ -7,31 +7,37 @@ MEMORY
 
 SECTIONS
 {
+    .stack (NOLOAD) :
+    {
+        . = . + 0x1000;
+        stack_top = .;
+        . = . + 0x1000;
+        irq_stack_top = .;
+        . = . + 0x1000;
+        fiq_stack_top = .;
+        . = . + 0x1000;
+    } > sram
+
     .text :
     {
         *(.text*);
         *(.rodata*);
-    } > sram
+    } > dram
 
     .data :
     {
         *(.data)
-    } > sram
+    } > dram
 
     .bss :
     {
         __bss_start__ = . ;
         *(.bss*)
         __bss_end__ = . ;
-    } > sram
+    } > dram
 
-    . = . + 0x1000;
-    stack_top = .;
-    . = . + 0x1000;
-    irq_stack_top = .;
-    . = . + 0x1000;
-    fiq_stack_top = .;
-    . = . + 0x1000;
-
-    _end = . ;
+    .newlib (NOLOAD) :
+    {
+        _end = . ;
+    } > dram
 }

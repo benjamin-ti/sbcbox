@@ -55,6 +55,7 @@
 
 #include <dma.h>
 #include <dma_utils.h>
+#include <edma.h>
 
 #include <interrupt.h>
 #include <am335x/chipdb_defs.h>
@@ -69,6 +70,8 @@
 
 /** \brief LED device instance number */
 #define GPIO_LED_INST_NUM     (0U)
+
+#define EDMA3CC_ADDR 0x49000000
 
 /* ========================================================================== */
 /*                         Structures and Enums                               */
@@ -135,10 +138,57 @@ static gpioAppPinObj_t gGpioAppCfg;
 
 static gpioAppPinObj_t gGpioAppPin0_7;
 static gpioAppPinObj_t gGpioAppPin0_20;
+static gpioAppPinObj_t gGpioAppPin3_20;
 
 /* ========================================================================== */
 /*                          Function Definitions                              */
 /* ========================================================================== */
+
+/** \brief EDMA default data configuration */
+static const EDMAParamDataConfig_t EDMA_DATA_DEFAULT =
+{
+    DMA_XFER_DATA_ADDR_MODE_INC,            /* addrMode */
+    DMA_XFER_DATA_FIFO_WIDTH_MIN,              /* fifoWidth */
+    {
+        0U,                                 /* addr */
+        0U,                                 /* bCntIdx */
+        0U,                                 /* cCntIdx */
+    }, /* EDMAParamDataAddrOff_t */
+    {
+        0U,                                 /* aCnt */
+        0U,                                 /* bCnt */
+        0U,                                 /* cCnt */
+        0U,                                 /* bCntRld */
+    }, /* EDMAParamDataSize_t */
+    EDMA_PARAM_SYNC_TYPE_A                  /* syncType */
+}; /* EDMAParamDataConfig_t */
+
+/** \brief EDMA default configuration */
+static const EDMAParamConfig_t EDMA_XFER_DEFAULT =
+{
+    NULL,                                   /* pSrc */
+    NULL,                                   /* pDst */
+    EDMA_PARAM_PRIV_LVL_USER,               /* privType */
+    0U,                                     /* privId */
+    FALSE,                                  /* enableLink */
+    FALSE,                                  /* enableStatic */
+    0xFFFFU,                                /* linkAddr */
+    FALSE,                                  /* enableChain */
+    EDMA_PARAM_XFER_TRIGGER_MASK_NONE,      /* chainMask */
+    EDMA_PARAM_TCC_MODE_NORMAL,             /* tccMode */
+    0U,                                     /* tcc */
+    EDMA_PARAM_TCC_MODE_NORMAL              /* intrMask */
+}; /* EDMAParamConfig_t */
+
+/** \brief EDMA default configuration */
+static const EDMAChConfig_t EDMA_CH_DEFAULT =
+{
+    0U,                                     /* regionId */
+    0U,                                     /* paRamEntry */
+    0U,                                     /* queueNum */
+    FALSE,                                  /* enableEvt */
+    FALSE                                   /* enableIntr */
+}; /* EDMAChConfig_t */
 
 /** \brief DMA default data configuration */
 static const dmaUtilsDataObj_t DMA_UTILS_DATA_DEFAULT =
@@ -193,9 +243,6 @@ static int32_t DMAMemCopy(uint32_t dmaType,
                         uint32_t noOfBytes, uint32_t paRamMappingSet, uint32_t chNum)
 {
     int32_t retStat = E_FAIL;
-    dmaUtilsDataObj_t srcDataObj = DMA_UTILS_DATA_DEFAULT;
-    dmaUtilsDataObj_t dstDataObj = DMA_UTILS_DATA_DEFAULT;
-    dmaUtilsXferObj_t xferObj = DMA_UTILS_XFER_DEFAULT;
     dmaUtilsChObj_t chObj = DMA_UTILS_CH_DEFAULT;
 
     if((NULL != pSrcBuf) && (NULL != pDstBuf))
@@ -206,6 +253,10 @@ static int32_t DMAMemCopy(uint32_t dmaType,
 
     if(S_PASS == retStat)
     {
+        dmaUtilsXferObj_t xferObj = DMA_UTILS_XFER_DEFAULT;
+        dmaUtilsDataObj_t srcDataObj = DMA_UTILS_DATA_DEFAULT;
+        dmaUtilsDataObj_t dstDataObj = DMA_UTILS_DATA_DEFAULT;
+
         xferObj.pSrc = &srcDataObj;
         xferObj.pDst = &dstDataObj;
 
@@ -227,8 +278,49 @@ static int32_t DMAMemCopy(uint32_t dmaType,
         xferObj.linkEnable = TRUE;
         xferObj.nxtXferIdx = 0U;
 
-        retStat = DMAUtilsDataXferConfig(dmaType, instNum, paRamMappingSet, &xferObj);
+//        retStat = DMAUtilsDataXferConfig(dmaType, instNum, paRamMappingSet, &xferObj);
+        retStat = EDMAUtilsDataXferConfig(instNum, paRamMappingSet, &xferObj);
     }
+
+/*
+    if(S_PASS == retStat)
+    {
+        EDMAParamDataConfig_t srcData = EDMA_DATA_DEFAULT;
+        EDMAParamDataConfig_t dstData = EDMA_DATA_DEFAULT;
+        EDMAParamConfig_t xferData = EDMA_XFER_DEFAULT;
+
+        srcData.addrMode = DMA_XFER_DATA_ADDR_MODE_INC;
+        srcData.fifoWidth = 0;
+        srcData.addrOff.addr = (uint32_t)pSrcBuf;
+        srcData.addrOff.bCntIdx = 1;
+        srcData.addrOff.cCntIdx = 0;
+        srcData.size.aCnt = 1;
+        srcData.size.bCnt = noOfBytes;
+        srcData.size.cCnt = 1;
+        srcData.size.bCntRld = 0;
+        srcData.syncType = DMA_UTILS_DATA_SYNC_PACKET;
+
+        dstData.addrMode = DMA_XFER_DATA_ADDR_MODE_INC;
+        dstData.fifoWidth = 0;
+        dstData.addrOff.addr = (uint32_t)pDstBuf;
+        dstData.addrOff.bCntIdx = 1;
+        dstData.addrOff.cCntIdx = 0;
+        dstData.size.aCnt = 0;
+        dstData.size.bCnt = 0;
+        dstData.size.cCnt = 0;
+        dstData.size.bCntRld = 0;
+        dstData.syncType = DMA_UTILS_DATA_SYNC_PACKET;
+
+        xferData.pSrc = &srcData;
+        xferData.pDst = &dstData;
+        retStat = EDMAParamConfig(EDMA3CC_ADDR, paRamMappingSet, &xferData);
+
+//        xferData.pSrc = &srcData;
+//        xferData.pDst = &dstData;
+//        retStat = EDMAGetParamConfig(EDMA3CC_ADDR, paRamMappingSet, &xferData);
+
+    }
+*/
 
     if(S_PASS == retStat)
     {
@@ -337,6 +429,7 @@ int main()
     gGpioAppCfg = GPIOAPPPINOBJ_DEFAULT;
     gGpioAppPin0_7 = GPIOAPPPINOBJ_DEFAULT;
     gGpioAppPin0_20 = GPIOAPPPINOBJ_DEFAULT;
+    gGpioAppPin3_20 = GPIOAPPPINOBJ_DEFAULT;
 
     status = BOARDInit(NULL);
 
@@ -372,8 +465,12 @@ int main()
         gGpioAppPin0_7.pinNum = 7;
         gGpioAppPin0_7.instNum = 0;
         gGpioAppPin0_7.instAddr = 0x44E07000;
+        gGpioAppPin0_7.pinCfg.dir = GPIO_DIRECTION_OUTPUT;
         GPIOAppInit(&gGpioAppPin0_7);
 
+        // Pin 0_20 und Pin 3_20 sind miteinander verbunden
+        // Pinmux kann in starterware unter board/am335x/am335x_beagleboneblack_pinmux_data.c gesetzt werden
+        // Pin 0_20 aktuell als XDMA_EVENT_INTR1 konfiguriert und nicht als GPIO
         gGpioAppPin0_20.pinNum = 20;
         gGpioAppPin0_20.instNum = 0;
         gGpioAppPin0_20.instAddr = 0x44E07000;
@@ -387,6 +484,12 @@ int main()
 //        gGpioAppPin0_20.pinCfg.wakeLine;
         GPIOAppInit(&gGpioAppPin0_20);
 
+        gGpioAppPin3_20.pinNum = 20;
+        gGpioAppPin3_20.instNum = 3;
+        gGpioAppPin3_20.instAddr = 0x481AE000;
+        gGpioAppPin3_20.pinCfg.dir = GPIO_DIRECTION_INPUT;
+        GPIOAppInit(&gGpioAppPin3_20);
+
 //        GPIOIntrConfig();
         *TPPC_EVT_MUX_32_35 = 29;
 //        XdmaEventIntr1Config();
@@ -396,8 +499,24 @@ int main()
     //    memcpy(pui8DestBuf, pui8SrcBuf, 5);
 
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
-        ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
+        ui32Pins = GPIOPinRead(gGpioAppPin3_20.instAddr, gGpioAppPin3_20.pinNum);
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
+        GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
+
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
         GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_LOW);
 
@@ -406,7 +525,7 @@ int main()
             memset(pui8DestBuf, 0, 10);
             DMAMemCopy(0, 0, pui8SrcByeBuf,   pui8DestBuf, 6,     2,    32);
             GPIOPinWrite(gGpioAppPin0_7.instAddr, gGpioAppPin0_7.pinNum, GPIO_PIN_HIGH);
-            ui32Pins = GPIOPinRead(gGpioAppPin0_20.instAddr, gGpioAppPin0_20.pinNum);
+            ui32Pins = GPIOPinRead(gGpioAppPin3_20.instAddr, gGpioAppPin3_20.pinNum);
         }
 
         // GPIO clock/pin mux and IP configuration

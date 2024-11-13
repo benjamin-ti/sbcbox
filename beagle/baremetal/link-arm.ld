@@ -7,8 +7,14 @@ MEMORY
 
 SECTIONS
 {
+    startup :
+    {
+        *(.startup)
+    } > dram
+
     .stack (NOLOAD) :
     {
+
         . = . + 0x1000;
         stack_top = .;
         . = . + 0x1000;
@@ -16,7 +22,7 @@ SECTIONS
         . = . + 0x1000;
         fiq_stack_top = .;
         . = . + 0x1000;
-    } > sram
+    } > dram
 
     .text :
     {

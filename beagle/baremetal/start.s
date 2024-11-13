@@ -4,19 +4,14 @@ _start:
     msr cpsr, r0
     ldr sp,=stack_top
 
-    @ Set IVT base address in CP15 VBAR register
-    ldr r0, =0x4030CE00
-    mcr p15, 0, r0, c12, c0, 0  @Set VBAR
+    @ Set V=0 in CP15 SCTRL register - for VBAR to point to vector */
+    mrc   p15, 0, r0, c1, c0, 0 @ Read CP15 SCTRL Register
+    bic   r0, #(1 << 13)        @ V = 0
+    mcr   p15, 0, r0, c1, c0, 0 @ Write CP15 SCTRL Register
 
-    @ Assign the IRQ interrupt method
-    ldr r0, base_irq_addr
-    ldr r1, basic_handler
-    str r1,[r0]
-
-    @ Assign the FIQ interrupt method
-    ldr r0, base_fiq_addr
-    ldr r1, basic_handler
-    str r1,[r0]
+    @ Set vector address in CP15 VBAR register */
+    ldr   r0, =_vector_table
+    mcr   p15, 0, r0, c12, c0, 0  @Set VBAR
 
     @ Setup sp in IRQ mode
     ldr r0, cpsr_irq
@@ -54,11 +49,35 @@ cpsr_fiq:      .word 0x111
 cpsr_irq:      .word 0x192
 cpsr_svc_ei:   .word 0x153
 cpsr_svc_efiq_ei: .word 0x113
-base_irq_addr: .word 0x4030CE38
-base_fiq_addr: .word 0x4030CE3C
-basic_handler: .word irq_handler
 bss_start:     .word __bss_start__
 bss_end:       .word __bss_end__
+
+.section .startup,"ax"
+    .code 32
+    .align 0
+_vector_table:
+    b     _start                        /* reset - _start       */
+    ldr   pc, _undf                     /* undefined - _undf    */
+    ldr   pc, _swi                      /* SWI - _swi           */
+    ldr   pc, _pabt                     /* program abort - _pabt*/
+    ldr   pc, _dabt                     /* data abort - _dabt   */
+    nop                                 /* reserved             */
+    ldr   pc, _irq                      /* IRQ - read the VIC   */
+    ldr   pc, _fiq                      /* FIQ - _fiq           */
+
+    _undf:  .word __undf                /* undefined            */
+    _swi:   .word 0                     /* SWI                  */
+    _pabt:  .word __pabt                /* program abort        */
+    _dabt:  .word __pabt                /* data abort           */
+    _irq:   .word irq_handler
+    _fiq:   .word __swi                 /* FIQ                  */
+
+    __undf: b     .                     /* undefined            */
+    __pabt: b     .                     /* program abort        */
+    __dabt: b     .                     /* data abort           */
+    __fiq:  b     .                     /* FIQ                  */
+    __irq:  b     .                     /* data abort           */
+    __swi:  b     .                     /* FIQ                  */
 
 .global Register_Write
 .global Register_Read

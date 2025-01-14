@@ -73,6 +73,14 @@
 
 #define EDMA3CC_ADDR 0x49000000
 
+#ifdef INTEGER_COMPUTATION_TEST
+#define GPIO2_BASE         0x481AC000
+#define GPIO2_OE           (volatile unsigned*)(GPIO2_BASE+0x134)
+#define GPIO2_CLEARDATAOUT (volatile unsigned*)(GPIO2_BASE+0x190)
+#define GPIO2_SETDATAOUT   (volatile unsigned*)(GPIO2_BASE+0x194)
+#define GPIO2_DATAIN       (volatile unsigned*)(GPIO2_BASE+0x138)
+#endif
+
 /* ========================================================================== */
 /*                         Structures and Enums                               */
 /* ========================================================================== */
@@ -139,6 +147,9 @@ static gpioAppPinObj_t gGpioAppCfg;
 static gpioAppPinObj_t gGpioAppPin0_7;
 static gpioAppPinObj_t gGpioAppPin0_20;
 static gpioAppPinObj_t gGpioAppPin3_20;
+#ifdef INTEGER_COMPUTATION_TEST
+static gpioAppPinObj_t gGpioAppPin2_8;
+#endif
 
 /* ========================================================================== */
 /*                          Function Definitions                              */
@@ -418,8 +429,8 @@ int main()
     int32_t retStat = E_FAIL;
 
     /* Enable cache memory and MMU */
-//    MMUConfigAndEnable();
-//    CACHEEnable(CACHE_IDCACHE, CACHE_INNER_OUTER);
+    MMUConfigAndEnable();
+    CACHEEnable(CACHE_IDCACHE, CACHE_INNER_OUTER);
 
     /*
      * Initialize the global objects of use case and IP configuration
@@ -430,6 +441,9 @@ int main()
     gGpioAppPin0_7 = GPIOAPPPINOBJ_DEFAULT;
     gGpioAppPin0_20 = GPIOAPPPINOBJ_DEFAULT;
     gGpioAppPin3_20 = GPIOAPPPINOBJ_DEFAULT;
+#ifdef INTEGER_COMPUTATION_TEST
+    gGpioAppPin2_8 = GPIOAPPPINOBJ_DEFAULT;
+#endif
 
     status = BOARDInit(NULL);
 
@@ -490,6 +504,14 @@ int main()
         gGpioAppPin3_20.pinCfg.dir = GPIO_DIRECTION_INPUT;
         GPIOAppInit(&gGpioAppPin3_20);
 
+#ifdef INTEGER_COMPUTATION_TEST
+        gGpioAppPin2_8.pinNum = 8;
+        gGpioAppPin2_8.instNum = 2;
+        gGpioAppPin2_8.instAddr = 0x481AC000;
+        gGpioAppPin2_8.pinCfg.dir = GPIO_DIRECTION_OUTPUT;
+        GPIOAppInit(&gGpioAppPin2_8);
+#endif
+
 //        GPIOIntrConfig();
         *TPPC_EVT_MUX_32_35 = 29;
 //        XdmaEventIntr1Config();
@@ -532,6 +554,17 @@ int main()
         GPIOAppInit(&gGpioAppCfg);
 
         CONSOLEUtilsPrintf("\nNow blinking the LED ...\n");
+
+#ifdef INTEGER_COMPUTATION_TEST
+        *GPIO2_OE &= ~(1<<8);
+        {
+            uint32_t integer_computation_test(uint32_t iterations);
+            *GPIO2_SETDATAOUT = (1<<8);
+            integer_computation_test(10000);
+            *GPIO2_CLEARDATAOUT = (1<<8);
+        }
+#endif
+
         while(1)
         {
             // Led blink Use Case
@@ -546,6 +579,33 @@ int main()
     return (S_PASS);
 }
 
+#ifdef INTEGER_COMPUTATION_TEST
+#define ARRAY_SIZE 1000
+
+volatile uint32_t data[ARRAY_SIZE];
+
+uint32_t integer_computation_test(uint32_t iterations)
+{
+    uint32_t result = 0;
+    uint32_t iter;
+    uint32_t i;
+
+    // Initialisiere das Array
+    for (i = 0; i < ARRAY_SIZE; i++) {
+        data[i] = i * 3 + 7;
+    }
+
+    // Starte den Test
+    for (iter = 0; iter < iterations; iter++) {
+        for (i = 0; i < ARRAY_SIZE; i++) {
+            result += (data[i] ^ (result + iter)) * 3;
+            result = (result << 1) | (result >> 31); // Zyklische Verschiebung
+        }
+    }
+
+    return result;
+}
+#endif
 
 /* -------------------------------------------------------------------------- */
 /*                 Internal Function Definitions                              */

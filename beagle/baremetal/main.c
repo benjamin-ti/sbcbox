@@ -18,6 +18,10 @@
 #define CM_WKUP_BASE    0x44E00400
 #define CM_WKUP_UART0_CLKCTRL (volatile unsigned*)(CM_WKUP_BASE+0xB4)
 
+#define WDT1_BASE         0x44E35000
+#define WDT1_WDT_WWPS     (volatile unsigned*)(WDT1_BASE+0x34)
+#define WDT1_WDT_WSPR     (volatile unsigned*)(WDT1_BASE+0x48)
+#define W_PEND_WSPR       0x10
 
 #define INTCPS_BASE       0x48200000
 #define INTC_SIR_IRQ      (volatile unsigned*)(INTCPS_BASE+0x40)
@@ -158,6 +162,14 @@ void main (void)
     unsigned int ui;
     char* pc1;
     char* pc2;
+/*
+    *WDT1_WDT_WSPR = 0x0000BBBB; //write magic1 to WDT_WSPR
+    *WDT1_WDT_WSPR = 0x00004444; //write magic2 to WDT_WSPR
+*/
+    *WDT1_WDT_WSPR = 0x0000AAAA; //write magic1 to WDT_WSPR
+    while (*WDT1_WDT_WWPS & W_PEND_WSPR);
+    *WDT1_WDT_WSPR = 0x00005555; //write magic2 to WDT_WSPR
+    while (*WDT1_WDT_WWPS & W_PEND_WSPR);
 
     *CM_PER_L3S = 0x2;
 

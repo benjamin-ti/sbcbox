@@ -15,7 +15,22 @@
 #define CM_PER_TIMER3   (volatile unsigned*)(CM_PER_BASE+0x84)
 #define CM_PER_GPIO1    (volatile unsigned*)(CM_PER_BASE+0xAC)
 
+#define CONTROL_MODULE_BASE 0x44E10000
+#define CONF_UART0_RXD  (volatile unsigned*)(CONTROL_MODULE_BASE+0x970)
+#define CONF_UART0_TXD  (volatile unsigned*)(CONTROL_MODULE_BASE+0x974)
+#define CONF_UART0_CTSN (volatile unsigned*)(CONTROL_MODULE_BASE+0x968)
+#define CONF_UART0_RTSN (volatile unsigned*)(CONTROL_MODULE_BASE+0x97C)
+#define CONF_UART1_RXD  (volatile unsigned*)(CONTROL_MODULE_BASE+0x980)
+#define CONF_UART1_TXD  (volatile unsigned*)(CONTROL_MODULE_BASE+0x984)
+
+#define CONF_SPI0_SCLK  (volatile unsigned*)(CONTROL_MODULE_BASE+0x950)
+#define CONF_SPI0_D0    (volatile unsigned*)(CONTROL_MODULE_BASE+0x954)
+#define CONF_SPI0_D1    (volatile unsigned*)(CONTROL_MODULE_BASE+0x958)
+#define CONF_SPI0_CS0   (volatile unsigned*)(CONTROL_MODULE_BASE+0x95C)
+#define CONF_SPI0_CS1   (volatile unsigned*)(CONTROL_MODULE_BASE+0x960)
+
 #define CM_WKUP_BASE    0x44E00400
+#define CM_WKUP_GPIO0_CLKCTRL (volatile unsigned*)(CM_WKUP_BASE+0x8)
 #define CM_WKUP_UART0_CLKCTRL (volatile unsigned*)(CM_WKUP_BASE+0xB4)
 
 #define WDT1_BASE         0x44E35000
@@ -56,6 +71,11 @@
 #define GPIO1_OE           (volatile unsigned*)(GPIO1_BASE+0x134)
 #define GPIO1_CLEARDATAOUT (volatile unsigned*)(GPIO1_BASE+0x190)
 #define GPIO1_SETDATAOUT   (volatile unsigned*)(GPIO1_BASE+0x194)
+
+#define GPIO0_BASE         0x44E07000
+#define GPIO0_OE           (volatile unsigned*)(GPIO0_BASE+0x134)
+#define GPIO0_CLEARDATAOUT (volatile unsigned*)(GPIO0_BASE+0x190)
+#define GPIO0_SETDATAOUT   (volatile unsigned*)(GPIO0_BASE+0x194)
 
 // -----------------------------------------------------------------------------
 void handle_DMTimer2(void)
@@ -176,6 +196,29 @@ void main (void)
     *CM_PER_GPIO1 = (1<<18 | 0x2);
     *GPIO1_OE &= ~(0xF<<21);
 
+/*
+    *CONF_UART0_TXD |= 0x7;
+    *CONF_UART0_RXD |= 0x7;
+    *CONF_UART0_CTSN |= 0x7;
+    *CONF_UART0_RTSN |= 0x7;
+
+    *CONF_SPI0_SCLK |= 0x7;
+    *CONF_SPI0_D0 |= 0x7;
+    *CONF_SPI0_D1 |= 0x7;
+    *CONF_SPI0_CS1 |= 0x7;
+
+    *GPIO1_OE &= ~(1<<11);
+    *GPIO1_OE &= ~(1<<8);
+    *GPIO1_OE &= ~(1<<10);
+    *GPIO1_OE &= ~(1<<9);
+
+    *CM_WKUP_GPIO0_CLKCTRL = 0x2;
+    *GPIO0_OE &= ~(1<<2);
+    *GPIO0_OE &= ~(1<<3);
+    *GPIO0_OE &= ~(1<<4);
+    *GPIO0_OE &= ~(1<<6);
+*/
+
     *CM_DPLL_CLKSEL_TIMER2 = CLK_M_OSC;
     *CM_PER_TIMER2 = 0x2;
 //    *INTC_MIR2 &= 0xFFFFFFEF;
@@ -226,8 +269,31 @@ void main (void)
     while (1)
     {
         *GPIO1_SETDATAOUT = (0x2<<21);
+/*
+        *GPIO1_SETDATAOUT = (1<<8);
+        *GPIO1_SETDATAOUT = (1<<9);
+        *GPIO1_SETDATAOUT = (1<<10);
+        *GPIO1_SETDATAOUT = (1<<11);
+
+        *GPIO0_SETDATAOUT = (1<<2);
+        *GPIO0_SETDATAOUT = (1<<3);
+        *GPIO0_SETDATAOUT = (1<<4);
+        *GPIO0_SETDATAOUT = (1<<6);
+*/
         for(ui=0; ui<TIME; ui++);
+
         *GPIO1_CLEARDATAOUT = (0x2<<21);
+/*
+        *GPIO1_CLEARDATAOUT = (1<<8);
+        *GPIO1_CLEARDATAOUT = (1<<9);
+        *GPIO1_CLEARDATAOUT = (1<<10);
+        *GPIO1_CLEARDATAOUT = (1<<11);
+
+        *GPIO0_CLEARDATAOUT = (1<<2);
+        *GPIO0_CLEARDATAOUT = (1<<3);
+        *GPIO0_CLEARDATAOUT = (1<<4);
+        *GPIO0_CLEARDATAOUT = (1<<6);
+*/
         for(ui=0; ui<TIME; ui++);
     }
 }

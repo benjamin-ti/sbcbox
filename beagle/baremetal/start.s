@@ -19,9 +19,9 @@ _start:
     ldr sp,=irq_stack_top
 
     @ Setup sp in FIQ mode
-    ldr r0, cpsr_fiq
-    msr cpsr, r0
-    ldr sp,=fiq_stack_top
+@    ldr r0, cpsr_fiq
+@    msr cpsr, r0
+@    ldr sp,=fiq_stack_top
 
     @ Go back to supervisor mode, enable irq
     ldr r0, cpsr_svc_ei
